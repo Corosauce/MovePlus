@@ -1,0 +1,16 @@
+[
+{
+  "modid": "moveplus",
+  "name": "Move Plus",
+  "description": "Adds dodging, double jumping, fall damage reduction, knockback resistance",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Corosus"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
