@@ -5,11 +5,11 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 
+import CoroUtil.util.Vec3;
 import moveplus.config.MovePlusCfg;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -21,11 +21,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.client.C03PacketPlayer;
-import net.minecraft.pathfinding.PathEntity;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import org.lwjgl.input.Keyboard;
@@ -33,7 +29,7 @@ import org.lwjgl.input.Keyboard;
 import CoroUtil.OldUtil;
 import CoroUtil.util.CoroUtilEntity;
 
-public class ClientTicker {
+public class ClientTickerOld {
 	
 	public static int lastKey = 0;
     public static int[] keys;

@@ -1,9 +1,7 @@
 package moveplus.config;
 
 import modconfig.IConfigCategory;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.stats.Achievement;
+import moveplus.forge.MovePlus;
 
 public class MovePlusCfg implements IConfigCategory {
 
@@ -39,17 +37,27 @@ public class MovePlusCfg implements IConfigCategory {
     
 	@Override
 	public String getCategory() {
-		return "MovePlus Settings";
+		return "MovePlus General";
 	}
 
 	@Override
 	public String getConfigFileName() {
-		return "MovePlus";
+		return getName();
 	}
 
 	@Override
 	public void hookUpdatedValues() {
 		
 	}
+
+    @Override
+    public String getName() {
+        return "MovePlus";
+    }
+
+    @Override
+    public String getRegistryName() {
+        return MovePlus.modID + ":" + getName();
+    }
 
 }

@@ -3,19 +3,13 @@ package moveplus.forge;
 import modconfig.ConfigMod;
 import moveplus.config.MovePlusCfg;
 import net.minecraftforge.common.config.Configuration;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartedEvent;
-import cpw.mods.fml.common.event.FMLServerStoppedEvent;
-import cpw.mods.fml.common.network.FMLEventChannel;
-import cpw.mods.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.*;
 
 
-@Mod(modid = "moveplus", name="Move Plus", version="v2.3.1")
+@Mod(modid = "moveplus", name="Move Plus", version="${version}")
 public class MovePlus {
 	
 	@Mod.Instance( value = "moveplus" )
@@ -39,9 +33,7 @@ public class MovePlus {
     public void preInit(FMLPreInitializationEvent event)
     {
     	
-    	ConfigMod.addConfigFile(event, "moveplus", new MovePlusCfg());
-    	
-    	//eventChannel.register(new EventHandlerPacket());
+    	ConfigMod.addConfigFile(event, new MovePlusCfg());
         
         proxy.preInit(this);
     }
