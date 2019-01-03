@@ -2,6 +2,7 @@ package moveplus.forge;
 
 
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -28,7 +29,7 @@ public class EventHandlerFML {
 	@SubscribeEvent
 	public void tickClient(TickEvent.ClientTickEvent event) {
 		if (event.phase == TickEvent.Phase.START) {
-			ClientTicker.tickClientGame();
+			//ClientTicker.tickClientGame();
 		}
 	}
 	
@@ -37,5 +38,13 @@ public class EventHandlerFML {
 		if (event.phase == TickEvent.Phase.END) {
 			ClientTicker.tickClientRenderScreen();
 		}
+	}
+
+	@SubscribeEvent
+	public void tickRenderScreen(RenderWorldLastEvent event) {
+		ClientTicker.tickClientRenderWorldLast();
+
+		//TEMP FOR VISUAL DEBUG
+		ClientTicker.tickClientGame();
 	}
 }
