@@ -1,30 +1,96 @@
 package moveplus.forge;
 
+import CoroUtil.forge.CULog;
+import moveplus.config.MovePlusCfg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.input.Keyboard;
 
+import java.util.HashMap;
+
 public class ClientTicker {
 
-    public static void tickClientGame() {
-        long curTime = System.currentTimeMillis();
+    public static boolean needsInit = true;
 
+    public static double prevMotionX;
+    public static double prevMotionY;
+    public static double prevMotionZ;
+
+    public static HashMap<KeyBinding, Long> keyTimesLastPressed = new HashMap<>();
+
+    //Vec2f used as such: forward speed, right speed
+    public static HashMap<KeyBinding, Vec2f> lookupKeyToDirection = new HashMap<>();
+
+    public static void tickInit() {
+        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindForward, new Vec2f(1, 0));
+        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindBack, new Vec2f(-1, 0));
+        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindLeft, new Vec2f(0, -1));
+        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindRight, new Vec2f(0, 1));
+    }
+
+    public static void tickClientGame() {
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
+
+        if (player == null || camera == null) return;
+
+        if (needsInit) {
+            needsInit = false;
+            tickInit();
+        }
+
+        tickLedgeClimb();
+        tickKnockbackResistence();
+        tickDodging();
+    }
+
+    public static void tickDodging() {
+        EntityPlayer player = Minecraft.getMinecraft().player;
+
+        if (MovePlusCfg.useGroundDodge) {
+            lookupKeyToDirection.forEach((k, v) -> processDodgeKey(k, v));
+        }
+    }
+
+    public static void processDodgeKey(KeyBinding key, Vec2f vec) {
+        long curTime = System.currentTimeMillis();
+        long lastTime = getLastKeyTime(key);
+
+        EntityPlayer player = Minecraft.getMinecraft().player;
+
+        if (key.isPressed()) {
+            if (lastTime == -1L) {
+                setLastKeyTime(key, curTime);
+            } else {
+                if (player.onGround && lastTime + MovePlusCfg.dodgeDelay > curTime) {
+                    CULog.dbg("dodge! " + key.getDisplayName());
+                    setRelVel(player, vec.y, 0.4F, vec.x, 1F);
+                    setLastKeyTime(key, -1L);
+                } else {
+                    setLastKeyTime(key, curTime);
+                }
+            }
+        }
+    }
+
+    public static void tickLedgeClimb() {
         EntityPlayer player = Minecraft.getMinecraft().player;
         Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
 
         boolean renderDebug = false;
 
-        if (player == null || camera == null) return;
-
-        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)/* && !player.onGround*/) {
+        if (Minecraft.getMinecraft().gameSettings.keyBindSprint.isKeyDown()/*Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)*/) {
 
             float grabDist = 0.75F;
             Vec3d lookVec = player.getLookVec().scale(grabDist);
@@ -91,6 +157,95 @@ public class ClientTicker {
                 }
             }
         }
+    }
+
+    public static void tickKnockbackResistence() {
+
+        EntityPlayer player = Minecraft.getMinecraft().player;
+
+        if (MovePlusCfg.knockbackResistAmount > 0D) {
+
+            float speed = (float) Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
+
+            if (player.hurtTime > 0) {
+
+                player.hurtTime = 0;
+
+                if (MovePlusCfg.knockbackResistAmount == 1D) {
+                    player.motionX = prevMotionX;
+                    player.motionY = prevMotionY;
+                    player.motionZ = prevMotionZ;
+                } else {
+                    player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                    player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))));
+                    player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                }
+            } else {
+                prevMotionX = player.motionX;
+                prevMotionY = player.motionY;
+                prevMotionZ = player.motionZ;
+            }
+        }
+    }
+
+    public static long getLastKeyTime(KeyBinding keybind) {
+        if (!keyTimesLastPressed.containsKey(keybind)) {
+            keyTimesLastPressed.put(keybind, -1L);
+        }
+        return keyTimesLastPressed.get(keybind);
+    }
+
+    public static void setLastKeyTime(KeyBinding keybind, long time) {
+        keyTimesLastPressed.put(keybind, time);
+    }
+
+    /**
+     * taken from old moveplus, a bit messy
+     *
+     * setting rightSpeed to -1 means left
+     * setting forwardSpeed to -1 means back
+     *
+     * @param entity
+     * @param rightSpeed
+     * @param y
+     * @param forwardSpeed
+     * @param horizontalMultiplier
+     */
+    public static void setRelVel(Entity entity, float rightSpeed, float y, float forwardSpeed, float horizontalMultiplier) {
+        float var5 = 10.0F;
+        float var6 = 0.0F;
+        float var7 = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * var5;
+        int var8 = (int)Math.floor((double)(var7 / 360.0F) + 0.5D);
+        var7 = var7 - (float)var8 * 360.0F + 270.0F;
+
+        if(forwardSpeed <= 0.0F && forwardSpeed < 0.0F) {
+            var7 += 180.0F;
+        }
+
+        if(rightSpeed > 0.0F) {
+            var7 += 90.0F - forwardSpeed * 10.0F;
+        } else if(rightSpeed < 0.0F) {
+            var7 += 270.0F + forwardSpeed * 10.0F;
+        }
+
+        float var9 = MathHelper.cos(-var7 * 0.01745329F - 3.141593F);
+        float var10 = MathHelper.sin(-var7 * 0.01745329F - 3.141593F);
+        float var11 = -MathHelper.cos(-var6 * 0.01745329F - 0.7853982F);
+        //float var12 = MathHelper.sin(-var6 * 0.01745329F - 0.7853982F);
+        float var13 = var9 * var11;
+        float var15 = var10 * var11;
+
+        if(rightSpeed == 0.0F && forwardSpeed == 0.0F) {
+            setVel(entity, (float)entity.motionX / 2.0F, y, (float)entity.motionZ / 2.0F);
+        } else {
+            setVel(entity, var13 * horizontalMultiplier * -1.0F, y, var15 * horizontalMultiplier);
+        }
+    }
+
+    public static void setVel(Entity entity, float x, float y, float z) {
+        entity.motionX += (double)x;
+        entity.motionY = (double)y;
+        entity.motionZ += (double)z;
     }
 
     public static void tickClientRenderScreen() {

@@ -29,7 +29,7 @@ public class EventHandlerFML {
 	@SubscribeEvent
 	public void tickClient(TickEvent.ClientTickEvent event) {
 		if (event.phase == TickEvent.Phase.START) {
-			//ClientTicker.tickClientGame();
+			ClientTicker.tickClientGame();
 		}
 	}
 	
@@ -45,6 +45,6 @@ public class EventHandlerFML {
 		ClientTicker.tickClientRenderWorldLast();
 
 		//TEMP FOR VISUAL DEBUG
-		ClientTicker.tickClientGame();
+		//ClientTicker.tickClientGame();
 	}
 }
