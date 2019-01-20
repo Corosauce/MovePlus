@@ -28,6 +28,7 @@ public class ClientTicker {
     public static double prevMotionZ;
 
     public static HashMap<KeyBinding, Long> keyTimesLastPressed = new HashMap<>();
+    public static HashMap<KeyBinding, Boolean> keyLastState = new HashMap<>();
 
     //Vec2f used as such: forward speed, right speed
     public static HashMap<KeyBinding, Vec2f> lookupKeyToDirection = new HashMap<>();
@@ -37,6 +38,10 @@ public class ClientTicker {
         lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindBack, new Vec2f(-1, 0));
         lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindLeft, new Vec2f(0, -1));
         lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindRight, new Vec2f(0, 1));
+        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindForward, false);
+        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindBack, false);
+        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindLeft, false);
+        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindRight, false);
     }
 
     public static void tickClientGame() {
@@ -50,17 +55,24 @@ public class ClientTicker {
             tickInit();
         }
 
-        tickLedgeClimb();
-        tickKnockbackResistence();
-        tickDodging();
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.currentScreen == null) {
+            if (MovePlusCfg.useLedgeClimb) {
+                tickLedgeClimb();
+            }
+            if (MovePlusCfg.knockbackResistAmount > 0D) {
+                tickKnockbackResistence();
+            }
+            if (MovePlusCfg.useGroundDodge) {
+                tickDodging();
+            }
+        }
     }
 
     public static void tickDodging() {
         EntityPlayer player = Minecraft.getMinecraft().player;
 
-        if (MovePlusCfg.useGroundDodge) {
-            lookupKeyToDirection.forEach((k, v) -> processDodgeKey(k, v));
-        }
+        lookupKeyToDirection.forEach((k, v) -> processDodgeKey(k, v));
     }
 
     public static void processDodgeKey(KeyBinding key, Vec2f vec) {
@@ -69,18 +81,24 @@ public class ClientTicker {
 
         EntityPlayer player = Minecraft.getMinecraft().player;
 
-        if (key.isPressed()) {
-            if (lastTime == -1L) {
-                setLastKeyTime(key, curTime);
-            } else {
-                if (player.onGround && lastTime + MovePlusCfg.dodgeDelay > curTime) {
-                    CULog.dbg("dodge! " + key.getDisplayName());
-                    setRelVel(player, vec.y, 0.4F, vec.x, 1F);
-                    setLastKeyTime(key, -1L);
-                } else {
+        if (key.getKeyCode() > 0) {
+            if (Keyboard.isKeyDown(key.getKeyCode()) && !keyLastState.get(key)) {
+                //CULog.dbg(key.getDisplayName() + ": " + (Keyboard.isKeyDown(key.getKeyCode()) ? "pressed" : "not pressed"));
+                if (lastTime == -1L) {
                     setLastKeyTime(key, curTime);
+                } else {
+                    if (player.onGround && lastTime + MovePlusCfg.dodgeDelay > curTime) {
+                        CULog.dbg("dodge! " + key.getDisplayName());
+                        setRelVel(player, vec.y, 0.4F, vec.x, 1F);
+                        setLastKeyTime(key, -1L);
+                    } else {
+                        setLastKeyTime(key, curTime);
+                    }
                 }
             }
+
+            keyLastState.put(key, Keyboard.isKeyDown(key.getKeyCode()));
+
         }
     }
 
@@ -163,28 +181,25 @@ public class ClientTicker {
 
         EntityPlayer player = Minecraft.getMinecraft().player;
 
-        if (MovePlusCfg.knockbackResistAmount > 0D) {
+        float speed = (float) Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
 
-            float speed = (float) Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
+        if (player.hurtTime > 0) {
 
-            if (player.hurtTime > 0) {
+            player.hurtTime = 0;
 
-                player.hurtTime = 0;
-
-                if (MovePlusCfg.knockbackResistAmount == 1D) {
-                    player.motionX = prevMotionX;
-                    player.motionY = prevMotionY;
-                    player.motionZ = prevMotionZ;
-                } else {
-                    player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
-                    player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))));
-                    player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
-                }
+            if (MovePlusCfg.knockbackResistAmount == 1D) {
+                player.motionX = prevMotionX;
+                player.motionY = prevMotionY;
+                player.motionZ = prevMotionZ;
             } else {
-                prevMotionX = player.motionX;
-                prevMotionY = player.motionY;
-                prevMotionZ = player.motionZ;
+                player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))));
+                player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
             }
+        } else {
+            prevMotionX = player.motionX;
+            prevMotionY = player.motionY;
+            prevMotionZ = player.motionZ;
         }
     }
 
