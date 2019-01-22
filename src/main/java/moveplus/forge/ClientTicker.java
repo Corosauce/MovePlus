@@ -18,6 +18,7 @@ import net.minecraft.util.math.Vec3d;
 import org.lwjgl.input.Keyboard;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ClientTicker {
 
@@ -93,6 +94,15 @@ public class ClientTicker {
                         setLastKeyTime(key, -1L);
                     } else {
                         setLastKeyTime(key, curTime);
+                    }
+                }
+            }
+
+            //prevent double tapping trigger between tapping other keys
+            if (Keyboard.isKeyDown(key.getKeyCode())) {
+                for (Map.Entry<KeyBinding, Long> entry : keyTimesLastPressed.entrySet()) {
+                    if (entry.getKey() != key) {
+                        entry.setValue(-1L);
                     }
                 }
             }
