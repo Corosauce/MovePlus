@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -45,6 +44,16 @@ public class ClientTicker {
         keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindRight, false);
     }
 
+    public static void tickClientRenderScreen() {
+        if (MovePlusCfg.useGroundDodge) {
+            tickDodging();
+        }
+    }
+
+    public static void tickClientRenderWorldLast() {
+
+    }
+
     public static void tickClientGame() {
         EntityPlayer player = Minecraft.getMinecraft().player;
         Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
@@ -63,9 +72,6 @@ public class ClientTicker {
             }
             if (MovePlusCfg.knockbackResistAmount > 0D) {
                 tickKnockbackResistence();
-            }
-            if (MovePlusCfg.useGroundDodge) {
-                tickDodging();
             }
         }
     }
@@ -88,7 +94,7 @@ public class ClientTicker {
                 if (lastTime == -1L) {
                     setLastKeyTime(key, curTime);
                 } else {
-                    if (player.onGround && lastTime + MovePlusCfg.dodgeDelay > curTime) {
+                    if (player.onGround && lastTime + MovePlusCfg.doubleTapDodgeMaxTimeInMilliseconds > curTime) {
                         CULog.dbg("dodge! " + key.getDisplayName());
                         setRelVel(player, vec.y, 0.4F, vec.x, 1F);
                         setLastKeyTime(key, -1L);
@@ -99,7 +105,8 @@ public class ClientTicker {
             }
 
             //prevent double tapping trigger between tapping other keys
-            if (Keyboard.isKeyDown(key.getKeyCode())) {
+            //check last state was unpressed so we dont cancel out actively held down keys
+            if (!Keyboard.isKeyDown(key.getKeyCode()) && keyLastState.get(key)) {
                 for (Map.Entry<KeyBinding, Long> entry : keyTimesLastPressed.entrySet()) {
                     if (entry.getKey() != key) {
                         entry.setValue(-1L);
@@ -271,14 +278,6 @@ public class ClientTicker {
         entity.motionX += (double)x;
         entity.motionY = (double)y;
         entity.motionZ += (double)z;
-    }
-
-    public static void tickClientRenderScreen() {
-
-    }
-
-    public static void tickClientRenderWorldLast() {
-
     }
 
     public static boolean nearWall(EntityPlayer player) {

@@ -7,7 +7,7 @@ public class MovePlusCfg implements IConfigCategory {
 
     public static boolean useGroundDodge = true;
     public static boolean useLedgeClimb = true;
-    public static long dodgeDelay = 300;
+    public static int doubleTapDodgeMaxTimeInMilliseconds = 300;
     public static double knockbackResistAmount = 0.3D;
     
 	@Override
