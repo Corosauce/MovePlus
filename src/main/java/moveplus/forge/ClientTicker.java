@@ -45,8 +45,11 @@ public class ClientTicker {
     }
 
     public static void tickClientRenderScreen() {
-        if (MovePlusCfg.useGroundDodge) {
-            tickDodging();
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.currentScreen == null) {
+            if (MovePlusCfg.useGroundDodge) {
+                tickDodging();
+            }
         }
     }
 
