@@ -9,6 +9,7 @@ public class MovePlusCfg implements IConfigCategory {
     public static boolean useLedgeClimb = true;
     public static int doubleTapDodgeMaxTimeInMilliseconds = 300;
     public static double knockbackResistAmount = 0.3D;
+    public static boolean dontGroundDodgeIfSneaking = true;
     
 	@Override
 	public String getCategory() {

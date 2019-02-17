@@ -45,8 +45,14 @@ public class ClientTicker {
     }
 
     public static void tickClientRenderScreen() {
+
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
+
+        if (player == null || camera == null) return;
+
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.currentScreen == null) {
+        if (mc.currentScreen == null && (!MovePlusCfg.dontGroundDodgeIfSneaking || !player.isSneaking())) {
             if (MovePlusCfg.useGroundDodge) {
                 tickDodging();
             }
@@ -98,7 +104,7 @@ public class ClientTicker {
                     setLastKeyTime(key, curTime);
                 } else {
                     if (player.onGround && lastTime + MovePlusCfg.doubleTapDodgeMaxTimeInMilliseconds > curTime) {
-                        CULog.dbg("dodge! " + key.getDisplayName());
+                        //CULog.dbg("dodge! " + key.getDisplayName());
                         setRelVel(player, vec.y, 0.4F, vec.x, 1F);
                         setLastKeyTime(key, -1L);
                     } else {
