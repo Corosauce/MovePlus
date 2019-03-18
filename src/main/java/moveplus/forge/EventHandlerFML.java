@@ -9,8 +9,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class EventHandlerFML {
-
-	public static World lastWorld = null;
 	
 	@SubscribeEvent
 	public void tickWorld(TickEvent.WorldTickEvent event) {

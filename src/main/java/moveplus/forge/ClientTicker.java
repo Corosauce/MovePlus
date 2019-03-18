@@ -105,7 +105,7 @@ public class ClientTicker {
                 } else {
                     if (player.onGround && lastTime + MovePlusCfg.doubleTapDodgeMaxTimeInMilliseconds > curTime) {
                         //CULog.dbg("dodge! " + key.getDisplayName());
-                        setRelVel(player, vec.y, 0.4F, vec.x, 1F);
+                        setRelVel(player, vec.y, (float) MovePlusCfg.groundDodgeForceVertical, vec.x, (float) MovePlusCfg.groundDodgeForceHorizontal);
                         setLastKeyTime(key, -1L);
                     } else {
                         setLastKeyTime(key, curTime);
