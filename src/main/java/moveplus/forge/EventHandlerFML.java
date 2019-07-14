@@ -1,12 +1,11 @@
 package moveplus.forge;
 
 
-import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class EventHandlerFML {
 	
@@ -26,7 +25,7 @@ public class EventHandlerFML {
 		
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public void tickClient(TickEvent.ClientTickEvent event) {
 		if (event.phase == TickEvent.Phase.START) {
@@ -34,7 +33,7 @@ public class EventHandlerFML {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public void tickRenderScreen(TickEvent.RenderTickEvent event) {
 		if (event.phase == TickEvent.Phase.END) {
@@ -42,7 +41,7 @@ public class EventHandlerFML {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public void tickRenderScreen(RenderWorldLastEvent event) {
 		ClientTicker.tickClientRenderWorldLast();
@@ -51,3 +50,5 @@ public class EventHandlerFML {
 		//ClientTicker.tickClientGame();
 	}
 }
+
+

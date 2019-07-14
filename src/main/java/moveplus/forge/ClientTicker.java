@@ -1,20 +1,20 @@
 package moveplus.forge;
 
 import CoroUtil.forge.CULog;
+import com.mojang.blaze3d.platform.GlStateManager;
 import moveplus.config.MovePlusCfg;
+import net.java.games.input.Keyboard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.input.Keyboard;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +23,11 @@ public class ClientTicker {
 
     public static boolean needsInit = true;
 
-    public static double prevMotionX;
+    /*public static double prevMotionX;
     public static double prevMotionY;
-    public static double prevMotionZ;
+    public static double prevMotionZ;*/
+
+    public static Vec3d prevMotion;
 
     public static HashMap<KeyBinding, Long> keyTimesLastPressed = new HashMap<>();
     public static HashMap<KeyBinding, Boolean> keyLastState = new HashMap<>();
@@ -34,24 +36,24 @@ public class ClientTicker {
     public static HashMap<KeyBinding, Vec2f> lookupKeyToDirection = new HashMap<>();
 
     public static void tickInit() {
-        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindForward, new Vec2f(1, 0));
-        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindBack, new Vec2f(-1, 0));
-        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindLeft, new Vec2f(0, -1));
-        lookupKeyToDirection.put(Minecraft.getMinecraft().gameSettings.keyBindRight, new Vec2f(0, 1));
-        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindForward, false);
-        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindBack, false);
-        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindLeft, false);
-        keyLastState.put(Minecraft.getMinecraft().gameSettings.keyBindRight, false);
+        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vec2f(1, 0));
+        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindBack, new Vec2f(-1, 0));
+        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindLeft, new Vec2f(0, -1));
+        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindRight, new Vec2f(0, 1));
+        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindForward, false);
+        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindBack, false);
+        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindLeft, false);
+        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindRight, false);
     }
 
     public static void tickClientRenderScreen() {
 
-        EntityPlayer player = Minecraft.getMinecraft().player;
-        Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
+        PlayerEntity player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getRenderViewEntity();
 
         if (player == null || camera == null) return;
 
-        Minecraft mc = Minecraft.getMinecraft();
+        Minecraft mc = Minecraft.getInstance();
         if (mc.currentScreen == null && (!MovePlusCfg.dontGroundDodgeIfSneaking || !player.isSneaking())) {
             if (MovePlusCfg.useGroundDodge) {
                 tickDodging();
@@ -64,8 +66,8 @@ public class ClientTicker {
     }
 
     public static void tickClientGame() {
-        EntityPlayer player = Minecraft.getMinecraft().player;
-        Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
+        PlayerEntity player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getRenderViewEntity();
 
         if (player == null || camera == null) return;
 
@@ -74,7 +76,7 @@ public class ClientTicker {
             tickInit();
         }
 
-        Minecraft mc = Minecraft.getMinecraft();
+        Minecraft mc = Minecraft.getInstance();
         if (mc.currentScreen == null) {
             if (MovePlusCfg.useLedgeClimb) {
                 tickLedgeClimb();
@@ -86,7 +88,7 @@ public class ClientTicker {
     }
 
     public static void tickDodging() {
-        EntityPlayer player = Minecraft.getMinecraft().player;
+        PlayerEntity player = Minecraft.getInstance().player;
 
         lookupKeyToDirection.forEach((k, v) -> processDodgeKey(k, v));
     }
@@ -95,7 +97,7 @@ public class ClientTicker {
         long curTime = System.currentTimeMillis();
         long lastTime = getLastKeyTime(key);
 
-        EntityPlayer player = Minecraft.getMinecraft().player;
+        PlayerEntity player = Minecraft.getInstance().player;
 
         if (key.getKeyCode() > 0) {
             if (Keyboard.isKeyDown(key.getKeyCode()) && !keyLastState.get(key)) {
@@ -129,12 +131,12 @@ public class ClientTicker {
     }
 
     public static void tickLedgeClimb() {
-        EntityPlayer player = Minecraft.getMinecraft().player;
-        Entity camera = Minecraft.getMinecraft().getRenderViewEntity();
+        PlayerEntity player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getRenderViewEntity();
 
         boolean renderDebug = false;
 
-        if (Minecraft.getMinecraft().gameSettings.keyBindSprint.isKeyDown()/*Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)*/) {
+        if (Minecraft.getInstance().gameSettings.keyBindSprint.isKeyDown()/*Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)*/) {
 
             float grabDist = 0.75F;
             Vec3d lookVec = player.getLookVec().scale(grabDist);
@@ -155,7 +157,7 @@ public class ClientTicker {
             double xzSize = 0.3D;
             double xzSizeBehind = 0.1D;
 
-            AxisAlignedBB playerAABB = player.getEntityBoundingBox();
+            AxisAlignedBB playerAABB = player.getBoundingBox();
             AxisAlignedBB spotForHandsAir = new AxisAlignedBB(player.posX + lookVec.x, playerAABB.minY, player.posZ + lookVec.z,
                     player.posX + lookVec.x, playerAABB.minY, player.posZ + lookVec.z)
                     .grow(xzSize, yAirSize, xzSize);
@@ -196,8 +198,8 @@ public class ClientTicker {
 
             if (foundGrabbableSpot/*nearWall(player)*/) {
                 float climbSpeed = 0.08F;
-                if (player.motionY < climbSpeed) {
-                    player.motionY = climbSpeed;
+                if (player.getMotion().y < climbSpeed) {
+                    player.getMotion().add(0, climbSpeed, 0);
                 }
             }
         }
@@ -205,27 +207,33 @@ public class ClientTicker {
 
     public static void tickKnockbackResistence() {
 
-        EntityPlayer player = Minecraft.getMinecraft().player;
+        PlayerEntity player = Minecraft.getInstance().player;
 
-        float speed = (float) Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
+        float speed = (float) player.getMotion().lengthSquared();
 
         if (player.hurtTime > 0) {
 
             player.hurtTime = 0;
 
             if (MovePlusCfg.knockbackResistAmount == 1D) {
-                player.motionX = prevMotionX;
+                player.setMotion(prevMotion);
+                /*player.motionX = prevMotionX;
                 player.motionY = prevMotionY;
-                player.motionZ = prevMotionZ;
+                player.motionZ = prevMotionZ;*/
             } else {
-                player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                player.setMotion
+                        (prevMotion.x + player.getMotion().x * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))
+                        , prevMotion.y + player.getMotion().y > 0.1D ? 0D : (player.getMotion().y * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)))
+                        , prevMotion.z + player.getMotion().x * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                /*player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
                 player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))));
-                player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
+                player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));*/
             }
         } else {
-            prevMotionX = player.motionX;
+            prevMotion = player.getMotion();
+            /*prevMotionX = player.motionX;
             prevMotionY = player.motionY;
-            prevMotionZ = player.motionZ;
+            prevMotionZ = player.motionZ;*/
         }
     }
 
@@ -277,57 +285,60 @@ public class ClientTicker {
         float var15 = var10 * var11;
 
         if(rightSpeed == 0.0F && forwardSpeed == 0.0F) {
-            setVel(entity, (float)entity.motionX / 2.0F, y, (float)entity.motionZ / 2.0F);
+            AddHorizAndSetVerticalVel(entity, (float)entity.getMotion().x / 2.0F, y, (float)entity.getMotion().z / 2.0F);
         } else {
-            setVel(entity, var13 * horizontalMultiplier * -1.0F, y, var15 * horizontalMultiplier);
+            AddHorizAndSetVerticalVel(entity, var13 * horizontalMultiplier * -1.0F, y, var15 * horizontalMultiplier);
         }
     }
 
-    public static void setVel(Entity entity, float x, float y, float z) {
-        entity.motionX += (double)x;
+    public static void AddHorizAndSetVerticalVel(Entity entity, float x, float y, float z) {
+        entity.setMotion(new Vec3d(entity.getMotion().x + x, y, entity.getMotion().z + z));
+        /*entity.motionX += (double)x;
         entity.motionY = (double)y;
-        entity.motionZ += (double)z;
+        entity.motionZ += (double)z;*/
     }
 
-    public static boolean nearWall(EntityPlayer player) {
-        return player.world.getCollisionBoxes(player, player.getEntityBoundingBox().grow(0.2D, 0.0D, 0.2D)).size() > 0;
+    public static boolean nearWall(PlayerEntity player) {
+        return player.world.getCollisionBoxes(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D)).size() > 0;
     }
 
-    public static void renderOffsetAABB(AxisAlignedBB boundingBox, double x, double y, double z, float r, float g, float b)
+    public static void renderOffsetAABB(AxisAlignedBB bounds, double x, double y, double z, float r, float g, float b)
     {
-        GlStateManager.disableTexture2D();
+        GlStateManager.disableTexture();
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
-        GlStateManager.color(r, g, b, 1.0F);
+        GlStateManager.color4f(r, g, b, 1.0F);
         bufferbuilder.setTranslation(x, y, z);
         bufferbuilder.begin(7, DefaultVertexFormats.POSITION_NORMAL);
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-        bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.minX, bounds.minY, bounds.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+        bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
         tessellator.draw();
         bufferbuilder.setTranslation(0.0D, 0.0D, 0.0D);
-        GlStateManager.enableTexture2D();
+        GlStateManager.enableTexture();
     }
 
 }
+
+

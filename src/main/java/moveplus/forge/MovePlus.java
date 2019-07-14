@@ -65,3 +65,5 @@ public class MovePlus {
 		if (true) System.out.println(obj);
 	}
 }
+
+
