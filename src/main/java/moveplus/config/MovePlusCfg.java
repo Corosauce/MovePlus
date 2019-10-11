@@ -1,10 +1,8 @@
 package moveplus.config;
 
-import modconfig.ConfigComment;
-import modconfig.IConfigCategory;
 import moveplus.forge.MovePlus;
 
-public class MovePlusCfg implements IConfigCategory {
+public class MovePlusCfg/* implements IConfigCategory*/ {
 
     public static boolean useGroundDodge = true;
     public static boolean useLedgeClimb = true;
@@ -12,33 +10,33 @@ public class MovePlusCfg implements IConfigCategory {
     public static double knockbackResistAmount = 0.3D;
     public static boolean dontGroundDodgeIfSneaking = true;
 
-    @ConfigComment("Range: 0.0 to 1.0")
+    //@ConfigComment("Range: 0.0 to 1.0")
     public static double groundDodgeForceHorizontal = 1D;
 
-    @ConfigComment("Range: 0.0 to 0.5")
+    //@ConfigComment("Range: 0.0 to 0.5")
     public static double groundDodgeForceVertical = 0.4D;
     
-	@Override
+	//@Override
 	public String getCategory() {
 		return "MovePlus General";
 	}
 
-	@Override
+	//@Override
 	public String getConfigFileName() {
 		return getName();
 	}
 
-    @Override
+    //@Override
     public String getName() {
         return "MovePlus";
     }
 
-    @Override
+    //@Override
     public String getRegistryName() {
-        return MovePlus.modID + ":" + getName();
+        return MovePlus.MODID + ":" + getName();
     }
 
-    @Override
+    //@Override
     public void hookUpdatedValues() {
         /*groundDodgeForceHorizontal = Math.min(groundDodgeForceHorizontal, 1D);
         groundDodgeForceVertical = Math.min(groundDodgeForceVertical, 0.5D);*/

@@ -1,6 +1,5 @@
 package moveplus.forge;
 
-import CoroUtil.forge.CULog;
 import com.mojang.blaze3d.platform.GlStateManager;
 import moveplus.config.MovePlusCfg;
 import net.java.games.input.Keyboard;
@@ -99,8 +98,12 @@ public class ClientTicker {
 
         PlayerEntity player = Minecraft.getInstance().player;
 
-        if (key.getKeyCode() > 0) {
-            if (Keyboard.isKeyDown(key.getKeyCode()) && !keyLastState.get(key)) {
+        //key.matchesKey()
+
+        //not mouse check
+        //if (key.getKeyCode() > 0) {
+            //if (Keyboard.isKeyDown(key.getKeyCode()) && !keyLastState.get(key)) {
+            if (key.isKeyDown() && !keyLastState.get(key)) {
                 //CULog.dbg(key.getDisplayName() + ": " + (Keyboard.isKeyDown(key.getKeyCode()) ? "pressed" : "not pressed"));
                 if (lastTime == -1L) {
                     setLastKeyTime(key, curTime);
@@ -117,7 +120,8 @@ public class ClientTicker {
 
             //prevent double tapping trigger between tapping other keys
             //check last state was unpressed so we dont cancel out actively held down keys
-            if (!Keyboard.isKeyDown(key.getKeyCode()) && keyLastState.get(key)) {
+            //if (!Keyboard.isKeyDown(key.getKeyCode()) && keyLastState.get(key)) {
+            if (!key.isKeyDown() && keyLastState.get(key)) {
                 for (Map.Entry<KeyBinding, Long> entry : keyTimesLastPressed.entrySet()) {
                     if (entry.getKey() != key) {
                         entry.setValue(-1L);
@@ -125,16 +129,17 @@ public class ClientTicker {
                 }
             }
 
-            keyLastState.put(key, Keyboard.isKeyDown(key.getKeyCode()));
+            keyLastState.put(key, key.isKeyDown());
+            //keyLastState.put(key, Keyboard.isKeyDown(key.getKeyCode()));
 
-        }
+        //}
     }
 
     public static void tickLedgeClimb() {
         PlayerEntity player = Minecraft.getInstance().player;
         Entity camera = Minecraft.getInstance().getRenderViewEntity();
 
-        boolean renderDebug = false;
+        boolean renderDebug = true;
 
         if (Minecraft.getInstance().gameSettings.keyBindSprint.isKeyDown()/*Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)*/) {
 
@@ -150,7 +155,8 @@ public class ClientTicker {
             //start y at base bb + ent height (1.62?) + 0.2 or so
             //expand y bb 0.25
 
-            double yScanRangeAir = player.height + 0.2D;
+            //double yScanRangeAir = player.height + 0.2D;
+            double yScanRangeAir = player.getHeight() + 0.2D;
             double yScanRangeSolid = 0.4D;
             double yScanRes = 0.2D;
             double yAirSize = 0.25D;
@@ -171,10 +177,12 @@ public class ClientTicker {
             //initial air finding loop
             boolean foundGrabbableSpot = false;
             //fix it trying to climb while either on the ground or just getting over ledge
-            if (!player.onGround && player.world.getCollisionBoxes(player, behindUnderFeet).size() == 0) {
+            //if (!player.onGround && player.world.getCollisionBoxes(player, behindUnderFeet).size() == 0) {
+            if (!player.onGround && player.world.isCollisionBoxesEmpty(player, behindUnderFeet)) {
                 for (double y = yScanRangeAir; y > 0.25D && !foundGrabbableSpot; y -= yScanRes) {
                     //if found a good air spot, find a solid spot under it within a tiny range of it
-                    if (player.world.getCollisionBoxes(player, spotForHandsAir.offset(0, y, 0)).size() == 0) {
+                    //if (player.world.getCollisionBoxes(player, spotForHandsAir.offset(0, y, 0)).size() == 0) {
+                    if (player.world.isCollisionBoxesEmpty(player, spotForHandsAir.offset(0, y, 0))) {
                         //TEMP
                         //foundGrabbableSpot = true;
                         AxisAlignedBB aabbRenderAir = spotForHandsAir.offset(-player.posX, -playerAABB.minY + y, -player.posZ);
@@ -184,7 +192,8 @@ public class ClientTicker {
                             AxisAlignedBB aabbTry2 = spotForHandsAir.offset(0, y - (yAirSize * 1D) - y2, 0);
                             AxisAlignedBB aabbRenderSolid = aabbTry2.offset(-player.posX, -playerAABB.minY, -player.posZ);
                             AxisAlignedBB aabb2 = new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(1, 1, 1);
-                            if (player.world.getCollisionBoxes(player, aabbTry2).size() > 0 && aabbTry2.minY + 0.15D > playerAABB.minY) {
+                            //if (player.world.getCollisionBoxes(player, aabbTry2).size() > 0 && aabbTry2.minY + 0.15D > playerAABB.minY) {
+                            if (!player.world.isCollisionBoxesEmpty(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
                                 foundGrabbableSpot = true;
                                 if (renderDebug) renderOffsetAABB(aabbRenderSolid.grow(xzSize, 0, xzSize), 0, 0, 0, 1, 0, 0);
                                 //Render.renderOffsetAABB(aabbRender, -camera.posX, -camera.posY, -camera.posZ);
@@ -199,7 +208,8 @@ public class ClientTicker {
             if (foundGrabbableSpot/*nearWall(player)*/) {
                 float climbSpeed = 0.08F;
                 if (player.getMotion().y < climbSpeed) {
-                    player.getMotion().add(0, climbSpeed, 0);
+                    Vec3d speed = player.getMotion();
+                    player.setMotion(speed.x, climbSpeed, speed.z);
                 }
             }
         }
@@ -230,7 +240,7 @@ public class ClientTicker {
                 player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));*/
             }
         } else {
-            prevMotion = player.getMotion();
+            prevMotion = player.getMotion().scale(1D);
             /*prevMotionX = player.motionX;
             prevMotionY = player.motionY;
             prevMotionZ = player.motionZ;*/
@@ -299,7 +309,8 @@ public class ClientTicker {
     }
 
     public static boolean nearWall(PlayerEntity player) {
-        return player.world.getCollisionBoxes(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D)).size() > 0;
+        //return player.world.getCollisionBoxes(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D)).size() > 0;
+        return !player.world.isCollisionBoxesEmpty(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D));
     }
 
     public static void renderOffsetAABB(AxisAlignedBB bounds, double x, double y, double z, float r, float g, float b)
