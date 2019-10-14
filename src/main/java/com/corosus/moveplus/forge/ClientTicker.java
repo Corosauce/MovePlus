@@ -1,8 +1,7 @@
-package moveplus.forge;
+package com.corosus.moveplus.forge;
 
+import com.corosus.moveplus.config.MovePlusCfgForge;
 import com.mojang.blaze3d.platform.GlStateManager;
-import moveplus.config.MovePlusCfg;
-import net.java.games.input.Keyboard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -53,8 +52,8 @@ public class ClientTicker {
         if (player == null || camera == null) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.currentScreen == null && (!MovePlusCfg.dontGroundDodgeIfSneaking || !player.isSneaking())) {
-            if (MovePlusCfg.useGroundDodge) {
+        if (mc.currentScreen == null && (!MovePlusCfgForge.GENERAL.dontGroundDodgeIfSneaking.get() || !player.isSneaking())) {
+            if (MovePlusCfgForge.GENERAL.useGroundDodge.get()) {
                 tickDodging();
             }
         }
@@ -77,10 +76,10 @@ public class ClientTicker {
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.currentScreen == null) {
-            if (MovePlusCfg.useLedgeClimb) {
+            if (MovePlusCfgForge.GENERAL.useLedgeClimb.get()) {
                 tickLedgeClimb();
             }
-            if (MovePlusCfg.knockbackResistAmount > 0D) {
+            if (MovePlusCfgForge.GENERAL.knockbackResistAmount.get() > 0D) {
                 tickKnockbackResistence();
             }
         }
@@ -108,9 +107,11 @@ public class ClientTicker {
                 if (lastTime == -1L) {
                     setLastKeyTime(key, curTime);
                 } else {
-                    if (player.onGround && lastTime + MovePlusCfg.doubleTapDodgeMaxTimeInMilliseconds > curTime) {
+                    if (player.onGround && lastTime + MovePlusCfgForge.GENERAL.doubleTapDodgeMaxTimeInMilliseconds.get() > curTime) {
                         //CULog.dbg("dodge! " + key.getDisplayName());
-                        setRelVel(player, vec.y, (float) MovePlusCfg.groundDodgeForceVertical, vec.x, (float) MovePlusCfg.groundDodgeForceHorizontal);
+                        double forceVertical = MovePlusCfgForge.GENERAL.groundDodgeForceVertical.get();
+                        double forceHorizontal = MovePlusCfgForge.GENERAL.groundDodgeForceHorizontal.get();
+                        setRelVel(player, vec.y, (float)forceVertical, vec.x, (float)forceHorizontal);
                         setLastKeyTime(key, -1L);
                     } else {
                         setLastKeyTime(key, curTime);
@@ -225,19 +226,19 @@ public class ClientTicker {
 
             player.hurtTime = 0;
 
-            if (MovePlusCfg.knockbackResistAmount == 1D) {
+            if (MovePlusCfgForge.GENERAL.knockbackResistAmount.get() == 1D) {
                 player.setMotion(prevMotion);
                 /*player.motionX = prevMotionX;
                 player.motionY = prevMotionY;
                 player.motionZ = prevMotionZ;*/
             } else {
                 player.setMotion
-                        (prevMotion.x + player.getMotion().x * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))
-                        , prevMotion.y + player.getMotion().y > 0.1D ? 0D : (player.getMotion().y * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)))
-                        , prevMotion.z + player.getMotion().x * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
-                /*player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));
-                player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D))));
-                player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfg.knockbackResistAmount, 1D)));*/
+                        (prevMotion.x + player.getMotion().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D))
+                        , prevMotion.y + player.getMotion().y > 0.1D ? 0D : (player.getMotion().y * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)))
+                        , prevMotion.z + player.getMotion().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)));
+                /*player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D)));
+                player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D))));
+                player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D)));*/
             }
         } else {
             prevMotion = player.getMotion().scale(1D);

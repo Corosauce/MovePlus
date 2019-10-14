@@ -1,10 +1,10 @@
-package moveplus.config;
+package com.corosus.moveplus.config;
 
-import moveplus.forge.MovePlus;
+import com.corosus.moveplus.forge.MovePlus;
 
 public class MovePlusCfg/* implements IConfigCategory*/ {
 
-    public static boolean useGroundDodge = true;
+    /*public static boolean useGroundDodge = true;
     public static boolean useLedgeClimb = true;
     public static int doubleTapDodgeMaxTimeInMilliseconds = 300;
     public static double knockbackResistAmount = 0.3D;
@@ -14,7 +14,7 @@ public class MovePlusCfg/* implements IConfigCategory*/ {
     public static double groundDodgeForceHorizontal = 1D;
 
     //@ConfigComment("Range: 0.0 to 0.5")
-    public static double groundDodgeForceVertical = 0.4D;
+    public static double groundDodgeForceVertical = 0.4D;*/
     
 	//@Override
 	public String getCategory() {
@@ -41,8 +41,8 @@ public class MovePlusCfg/* implements IConfigCategory*/ {
         /*groundDodgeForceHorizontal = Math.min(groundDodgeForceHorizontal, 1D);
         groundDodgeForceVertical = Math.min(groundDodgeForceVertical, 0.5D);*/
 
-        groundDodgeForceHorizontal = Math.max(Math.min(groundDodgeForceHorizontal, 1.0D), 0D);
-        groundDodgeForceVertical = Math.max(Math.min(groundDodgeForceVertical, 0.5D), 0D);
+        /*groundDodgeForceHorizontal = Math.max(Math.min(groundDodgeForceHorizontal, 1.0D), 0D);
+        groundDodgeForceVertical = Math.max(Math.min(groundDodgeForceVertical, 0.5D), 0D);*/
     }
 
 }
