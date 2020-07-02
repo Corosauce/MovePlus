@@ -13,6 +13,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.config.ConfigTracker;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,6 +116,11 @@ public class ClientTicker {
                         double forceHorizontal = MovePlusCfgForge.GENERAL.groundDodgeForceHorizontal.get();
                         setRelVel(player, vec.y, (float)forceVertical, vec.x, (float)forceHorizontal);
                         setLastKeyTime(key, -1L);
+
+
+                        MovePlus.LOGGER.info(":|");
+                        //ConfigTracker.INSTANCE.loadDefaultServerConfigs();
+                        ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
                     } else {
                         setLastKeyTime(key, curTime);
                     }

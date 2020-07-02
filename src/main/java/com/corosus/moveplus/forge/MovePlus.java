@@ -16,13 +16,16 @@ import org.apache.logging.log4j.Logger;
 @Mod("moveplus")
 public class MovePlus
 {
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public static final String MODID = "moveplus";
 
     public MovePlus() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onLoad);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onFileChange);
 
         MinecraftForge.EVENT_BUS.register(new EventHandlerForge());
 

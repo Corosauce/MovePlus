@@ -1,7 +1,9 @@
 package com.corosus.moveplus.config;
 
+import com.corosus.moveplus.forge.MovePlus;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 
 import static net.minecraftforge.common.ForgeConfigSpec.*;
@@ -53,10 +55,10 @@ public class MovePlusCfgForge {
     public static final ForgeConfigSpec CLIENT_CONFIG = CLIENT_BUILDER.build();
 
     public static void onLoad(final ModConfig.Loading configEvent) {
-
+        MovePlus.LOGGER.info("ModConfig.Loading!" + configEvent.toString());
     }
 
     public static void onFileChange(final ModConfig.ConfigReloading configEvent) {
-
+        MovePlus.LOGGER.info("file changed!" + configEvent.toString());
     }
 }
