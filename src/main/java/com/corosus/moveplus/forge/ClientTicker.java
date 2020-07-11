@@ -172,16 +172,16 @@ public class ClientTicker {
             double xzSize = 0.3D;
             double xzSizeBehind = 0.1D;
 
-            AxisAlignedBB playerAABB = player.getBoundingBox();
-            AxisAlignedBB spotForHandsAir = new AxisAlignedBB(player.posX + lookVec.x, playerAABB.minY, player.posZ + lookVec.z,
-                    player.posX + lookVec.x, playerAABB.minY, player.posZ + lookVec.z)
+            AxisAlignedBB playerAABB = player.getBoundingBox()
+            AxisAlignedBB spotForHandsAir = new AxisAlignedBB(player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z,
+                    player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z)
                     .grow(xzSize, yAirSize, xzSize);
 
-            AxisAlignedBB behindUnderFeet = new AxisAlignedBB(player.posX + lookVecBehind.x, playerAABB.minY, player.posZ + lookVecBehind.z,
-                    player.posX + lookVecBehind.x, playerAABB.minY, player.posZ + lookVecBehind.z)
+            AxisAlignedBB behindUnderFeet = new AxisAlignedBB(player.getPosX() + lookVecBehind.x, playerAABB.minY, player.getPosZ() + lookVecBehind.z,
+                    player.getPosX() + lookVecBehind.x, playerAABB.minY, player.getPosZ() + lookVecBehind.z)
                     .grow(xzSizeBehind, xzSizeBehind, xzSizeBehind);
 
-            if (renderDebug) renderOffsetAABB(behindUnderFeet.offset(-player.posX, -playerAABB.minY, -player.posZ), 0, 0, 0, 0, 1, 0);
+            if (renderDebug) renderOffsetAABB(behindUnderFeet.offset(-player.getPosX(), -playerAABB.minY, -player.getPosZ()), 0, 0, 0, 0, 1, 0);
 
             //initial air finding loop
             boolean foundGrabbableSpot = false;
@@ -194,18 +194,18 @@ public class ClientTicker {
                     if (player.world.isCollisionBoxesEmpty(player, spotForHandsAir.offset(0, y, 0))) {
                         //TEMP
                         //foundGrabbableSpot = true;
-                        AxisAlignedBB aabbRenderAir = spotForHandsAir.offset(-player.posX, -playerAABB.minY + y, -player.posZ);
+                        AxisAlignedBB aabbRenderAir = spotForHandsAir.offset(-player.getPosX(), -playerAABB.minY + y, -player.getPosZ());
                         if (renderDebug) renderOffsetAABB(aabbRenderAir.grow(xzSize, 0, xzSize), 0, 0, 0, 0, 0, 1);
                         for (double y2 = 0; y2 < yScanRangeSolid; y2 += yScanRes) {
                             //start the spot half intersecting the air spot and iterate down a bit
                             AxisAlignedBB aabbTry2 = spotForHandsAir.offset(0, y - (yAirSize * 1D) - y2, 0);
-                            AxisAlignedBB aabbRenderSolid = aabbTry2.offset(-player.posX, -playerAABB.minY, -player.posZ);
+                            AxisAlignedBB aabbRenderSolid = aabbTry2.offset(-player.getPosX(), -playerAABB.minY, -player.getPosZ());
                             AxisAlignedBB aabb2 = new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(1, 1, 1);
                             //if (player.world.getCollisionBoxes(player, aabbTry2).size() > 0 && aabbTry2.minY + 0.15D > playerAABB.minY) {
                             if (!player.world.isCollisionBoxesEmpty(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
                                 foundGrabbableSpot = true;
                                 if (renderDebug) renderOffsetAABB(aabbRenderSolid.grow(xzSize, 0, xzSize), 0, 0, 0, 1, 0, 0);
-                                //Render.renderOffsetAABB(aabbRender, -camera.posX, -camera.posY, -camera.posZ);
+                                //Render.renderOffsetAABB(aabbRender, -camera.getPosX(), -camera.getPosY(), -camera.getPosZ());
                                 //Render.renderOffsetAABB(aabb2, 0, 0, 0);
                                 break;
                             }
@@ -317,19 +317,16 @@ public class ClientTicker {
         entity.motionZ += (double)z;*/
     }
 
-    public static boolean nearWall(PlayerEntity player) {
-        //return player.world.getCollisionBoxes(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D)).size() > 0;
-        return !player.world.isCollisionBoxesEmpty(player, player.getBoundingBox().grow(0.2D, 0.0D, 0.2D));
-    }
-
+    //TODO: wont work until setTranslation fix
     public static void renderOffsetAABB(AxisAlignedBB bounds, double x, double y, double z, float r, float g, float b)
     {
         GlStateManager.disableTexture();
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         GlStateManager.color4f(r, g, b, 1.0F);
+        //TODO: 1.15 replacement
         bufferbuilder.setTranslation(x, y, z);
-        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_NORMAL);
+        bufferbuilder.begin(7, DefaultVertexFormats.POSITION);
         bufferbuilder.pos(bounds.minX, bounds.maxY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
         bufferbuilder.pos(bounds.maxX, bounds.maxY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
         bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();

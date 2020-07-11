@@ -54,11 +54,11 @@ public class MovePlusCfgForge {
     }
     public static final ForgeConfigSpec CLIENT_CONFIG = CLIENT_BUILDER.build();
 
-    public static void onLoad(final ModConfig.Loading configEvent) {
+    /*public static void onLoad(final ModConfig.Loading configEvent) {
         MovePlus.LOGGER.info("ModConfig.Loading!" + configEvent.toString());
     }
 
     public static void onFileChange(final ModConfig.ConfigReloading configEvent) {
         MovePlus.LOGGER.info("file changed!" + configEvent.toString());
-    }
+    }*/
 }
