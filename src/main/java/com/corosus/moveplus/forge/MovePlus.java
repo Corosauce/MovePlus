@@ -25,8 +25,9 @@ public class MovePlus
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onLoad);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onFileChange);
+        //TODO: off for 1.15
+        /*FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onLoad);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(MovePlusCfgForge::onFileChange);*/
 
         MinecraftForge.EVENT_BUS.register(new EventHandlerForge());
 
@@ -34,8 +35,9 @@ public class MovePlus
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MovePlusCfgForge.CLIENT_CONFIG);
 
-        eventBus.addListener(MovePlusCfgForge::onLoad);
-        eventBus.addListener(MovePlusCfgForge::onFileChange);
+        //TODO: off for 1.15
+        /*eventBus.addListener(MovePlusCfgForge::onLoad);
+        eventBus.addListener(MovePlusCfgForge::onFileChange);*/
     }
 
     private void setup(final FMLCommonSetupEvent event)

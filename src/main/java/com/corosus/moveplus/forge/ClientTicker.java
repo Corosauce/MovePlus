@@ -172,7 +172,7 @@ public class ClientTicker {
             double xzSize = 0.3D;
             double xzSizeBehind = 0.1D;
 
-            AxisAlignedBB playerAABB = player.getBoundingBox()
+            AxisAlignedBB playerAABB = player.getBoundingBox();
             AxisAlignedBB spotForHandsAir = new AxisAlignedBB(player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z,
                     player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z)
                     .grow(xzSize, yAirSize, xzSize);
@@ -187,11 +187,11 @@ public class ClientTicker {
             boolean foundGrabbableSpot = false;
             //fix it trying to climb while either on the ground or just getting over ledge
             //if (!player.onGround && player.world.getCollisionBoxes(player, behindUnderFeet).size() == 0) {
-            if (!player.onGround && player.world.isCollisionBoxesEmpty(player, behindUnderFeet)) {
+            if (!player.onGround && player.world.hasNoCollisions(player, behindUnderFeet)) {
                 for (double y = yScanRangeAir; y > 0.25D && !foundGrabbableSpot; y -= yScanRes) {
                     //if found a good air spot, find a solid spot under it within a tiny range of it
                     //if (player.world.getCollisionBoxes(player, spotForHandsAir.offset(0, y, 0)).size() == 0) {
-                    if (player.world.isCollisionBoxesEmpty(player, spotForHandsAir.offset(0, y, 0))) {
+                    if (player.world.hasNoCollisions(player, spotForHandsAir.offset(0, y, 0))) {
                         //TEMP
                         //foundGrabbableSpot = true;
                         AxisAlignedBB aabbRenderAir = spotForHandsAir.offset(-player.getPosX(), -playerAABB.minY + y, -player.getPosZ());
@@ -202,7 +202,7 @@ public class ClientTicker {
                             AxisAlignedBB aabbRenderSolid = aabbTry2.offset(-player.getPosX(), -playerAABB.minY, -player.getPosZ());
                             AxisAlignedBB aabb2 = new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(1, 1, 1);
                             //if (player.world.getCollisionBoxes(player, aabbTry2).size() > 0 && aabbTry2.minY + 0.15D > playerAABB.minY) {
-                            if (!player.world.isCollisionBoxesEmpty(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
+                            if (!player.world.hasNoCollisions(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
                                 foundGrabbableSpot = true;
                                 if (renderDebug) renderOffsetAABB(aabbRenderSolid.grow(xzSize, 0, xzSize), 0, 0, 0, 1, 0, 0);
                                 //Render.renderOffsetAABB(aabbRender, -camera.getPosX(), -camera.getPosY(), -camera.getPosZ());
@@ -320,7 +320,9 @@ public class ClientTicker {
     //TODO: wont work until setTranslation fix
     public static void renderOffsetAABB(AxisAlignedBB bounds, double x, double y, double z, float r, float g, float b)
     {
-        GlStateManager.disableTexture();
+
+        //TODO: 1.15
+        /*GlStateManager.disableTexture();
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         GlStateManager.color4f(r, g, b, 1.0F);
@@ -353,7 +355,7 @@ public class ClientTicker {
         bufferbuilder.pos(bounds.maxX, bounds.minY, bounds.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
         tessellator.draw();
         bufferbuilder.setTranslation(0.0D, 0.0D, 0.0D);
-        GlStateManager.enableTexture();
+        GlStateManager.enableTexture();*/
     }
 
 }

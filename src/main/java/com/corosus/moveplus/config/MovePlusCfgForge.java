@@ -54,6 +54,7 @@ public class MovePlusCfgForge {
     }
     public static final ForgeConfigSpec CLIENT_CONFIG = CLIENT_BUILDER.build();
 
+    //TODO: off for 1.15
     /*public static void onLoad(final ModConfig.Loading configEvent) {
         MovePlus.LOGGER.info("ModConfig.Loading!" + configEvent.toString());
     }

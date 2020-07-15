@@ -15,6 +15,7 @@ out
 
 # gradle
 build
+build_idea
 .gradle
 
 # other
