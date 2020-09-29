@@ -1,0 +1,156 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version "4.0.4"
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'eclipse'
+
+version = "${project.minecraft}-${project.modVersion}"
+group = 'com.syszee'
+archivesBaseName = project.modId
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+mixin {
+    add sourceSets.main, "${project.modId}.refmap.json"
+}
+
+
+configurations {
+    shade
+}
+
+shadowJar {
+    configurations = [project.configurations.shade]
+}
+
+minecraft {
+    mappings channel: project.mappingsChannel, version: project.mappings
+
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run/client')
+            property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=example.mixins.json"
+
+            mods {
+                example {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run/server')
+            property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=example.mixins.json"
+
+            mods {
+                example {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run/data')
+            property 'forge.logging.console.level', 'debug'
+            args '--mod', 'example', '--all', '--output', file('src/generated/resources/')
+            mods {
+                example {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "Curse Maven"
+        url = "https://www.cursemaven.com"
+    }
+    maven {
+        name = "JitPack"
+        url = "https://jitpack.io"
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.minecraft}-${project.forge}"
+
+    compileOnly "com.github.Ocelot5836:Sonar:${project.sonar}"
+    runtimeOnly fg.deobf("com.github.Ocelot5836:Sonar:${project.sonar}")
+    shade fg.deobf("com.github.Ocelot5836:Sonar:${project.sonar}")
+}
+
+processResources {
+	inputs.property("modName", project.modName)
+    inputs.property("modVersion", project.modVersion)
+    inputs.property("modId", project.modId)
+    from(sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mods.toml'
+        include 'pack.mcmeta'
+        include "${project.modId}.mixins.json"
+        expand 'modVersion': project.modVersion, 'modId': project.modId, 'modName': project.modName
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'META-INF/mods.toml'
+        exclude 'pack.mcmeta'
+        exclude "${project.modId}.mixins.json"
+    }
+
+    // Minify json resources
+    doLast {
+        fileTree(dir: outputs.files.asPath, include: "**/*.json").each {
+            File file -> file.text = JsonOutput.toJson(new JsonSlurper().parse(file))
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title"     : project.modName,
+            "Specification-Vendor"    : "SystemZee",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : "${version}",
+            "Implementation-Vendor"   :"SystemZee",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs"            : "${project.modId}.mixins.json"
+        ])
+    }
+}
+
+reobf {
+    shadowJar {}
+}
+
+artifacts {
+    archives jar
+    archives shadowJar
+}
+
+build.dependsOn reobfShadowJar

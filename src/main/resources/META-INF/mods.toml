@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[34,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "${modId}"
+version = "${modVersion}"
+displayName = "${modName}"
+authors = "Ocelot & Jackson"
+description = '''
+Example Description
+'''
+
+[[dependencies.${modId}]]
+modId = "forge"
+mandatory = true
+versionRange = "[34,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${modId}]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.16.3]"
+ordering = "NONE"
+side = "BOTH"
