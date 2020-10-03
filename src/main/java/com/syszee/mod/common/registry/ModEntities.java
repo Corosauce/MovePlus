@@ -19,14 +19,14 @@ public class ModEntities
 
     // public static final RegistryObject<EntityType<ExampleEntity>> EXAMPLE = register("example", EntityType.Builder.create(ExampleEntity::new, EntityClassification.MISC).size(1.0F, 1.0F).trackingRange(10), 0xff00ff, 0xff00ff, new Item.Properties().group(ItemGroup.MISC));
 
-    /* Registry Methods */
-
     @SubscribeEvent
     public static void onEvent(BiomeLoadingEvent event)
     {
         // if (event.getCategory() == Biome.Category.PLAINS)
             // event.getSpawns().getSpawner(EntityClassification.MISC).add(new MobSpawnInfo.Spawners(EXAMPLE.get(), 8, 4, 4));
     }
+
+    /* Registry Methods */
 
     /**
      * Registers a new entity with an egg under the specified id.
