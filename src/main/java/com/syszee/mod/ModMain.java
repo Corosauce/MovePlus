@@ -27,6 +27,7 @@ public class ModMain
 
         ModItems.ITEMS.register(bus);
         ModBlocks.BLOCKS.register(bus);
+        ModBlocks.TILE_ENTITIES.register(bus);
         ModEntities.ENTITIES.register(bus);
 
         MinecraftForge.EVENT_BUS.register(this);
