@@ -3,6 +3,7 @@ package com.syszee.mod;
 import com.syszee.mod.common.registry.ModBlocks;
 import com.syszee.mod.common.registry.ModEntities;
 import com.syszee.mod.common.registry.ModItems;
+import com.syszee.mod.common.registry.ModSounds;
 import com.syszee.mod.datagen.RecipeGen;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.MinecraftForge;
@@ -18,9 +19,9 @@ public class ModMain
 {
     public static final String MOD_ID = "example";
 
-    public ModMain() 
+    public ModMain()
     {
-    	IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(this::setup);
         bus.addListener(this::clientSetup);
         bus.addListener(this::setupDataGens);
@@ -29,6 +30,7 @@ public class ModMain
         ModBlocks.BLOCKS.register(bus);
         ModBlocks.TILE_ENTITIES.register(bus);
         ModEntities.ENTITIES.register(bus);
+        ModSounds.SOUNDS.register(bus);
 
         MinecraftForge.EVENT_BUS.register(this);
     }
