@@ -4,9 +4,12 @@ import com.syszee.mod.common.registry.ModBlocks;
 import com.syszee.mod.common.registry.ModEntities;
 import com.syszee.mod.common.registry.ModItems;
 import com.syszee.mod.common.registry.ModSounds;
+import com.syszee.mod.datagen.BlockTagGen;
+import com.syszee.mod.datagen.LootTableGen;
 import com.syszee.mod.datagen.RecipeGen;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -46,6 +49,9 @@ public class ModMain
     private void setupDataGens(GatherDataEvent event)
     {
         DataGenerator dataGenerator = event.getGenerator();
+        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         dataGenerator.addProvider(new RecipeGen(dataGenerator));
+        dataGenerator.addProvider(new LootTableGen(dataGenerator));
+        dataGenerator.addProvider(new BlockTagGen(dataGenerator, existingFileHelper));
     }
 }
