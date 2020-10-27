@@ -4,9 +4,7 @@ import com.syszee.mod.common.registry.ModBlocks;
 import com.syszee.mod.common.registry.ModEntities;
 import com.syszee.mod.common.registry.ModItems;
 import com.syszee.mod.common.registry.ModSounds;
-import com.syszee.mod.datagen.BlockTagGen;
-import com.syszee.mod.datagen.LootTableGen;
-import com.syszee.mod.datagen.RecipeGen;
+import com.syszee.mod.datagen.*;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -50,8 +48,12 @@ public class ModMain
     {
         DataGenerator dataGenerator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+        BlockTagGen blockTagGen = new BlockTagGen(dataGenerator, existingFileHelper);
         dataGenerator.addProvider(new RecipeGen(dataGenerator));
         dataGenerator.addProvider(new LootTableGen(dataGenerator));
-        dataGenerator.addProvider(new BlockTagGen(dataGenerator, existingFileHelper));
+        dataGenerator.addProvider(blockTagGen);
+        dataGenerator.addProvider(new ItemTagGen(dataGenerator, blockTagGen, existingFileHelper));
+        dataGenerator.addProvider(new FluidTagGen(dataGenerator, existingFileHelper));
+        dataGenerator.addProvider(new EntityTypeTagGen(dataGenerator, existingFileHelper));
     }
 }
