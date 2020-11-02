@@ -2,6 +2,7 @@ package com.corosus.moveplus.forge;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -38,6 +39,12 @@ public class EventHandlerForge {
              * 5. decide on an intuitive way to end crawl mode (pressing same combo again? jumping? crouch key? sprint key? all or any of them?)
              */
         }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public void tickClient(ClientChatEvent event) {
+        ClientTicker.clientChatEvent(event);
     }
 
 
