@@ -47,6 +47,7 @@ public class ClientTicker {
     public static long lastTick = 0;
     public static boolean debug = true;
     public static int syncDelay = 5000;
+    public static String csvSpecPlayers = "";
 
     public static void tickInit() {
         lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vec2f(1, 0));
@@ -123,8 +124,8 @@ public class ClientTicker {
             if (specEnt != null && player != null && player.world != null && player.isSpectator()) {
                 if (curTime > lastTick + syncDelay) {
 
-                    dbg("curTime: " + curTime);
-                    dbg("lastTick: " + lastTick);
+                    //dbg("curTime: " + curTime);
+                    //dbg("lastTick: " + lastTick);
 
                     lastTick = curTime;
 
@@ -142,10 +143,10 @@ public class ClientTicker {
                         boolean ghostPlayer = false;
                         boolean diffDimensionPlayer = false;
 
-                        AbstractClientPlayerEntity foundPlayerInDimension = null;
+                        AbstractClientPlayerEntity foundNonSpectatingPlayerInSameDimension = null;
                         for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
                             if (otherPlayer.getName().getFormattedText().equals(lastPlayerSpectated)) {
-                                foundPlayerInDimension = otherPlayer;
+                                foundNonSpectatingPlayerInSameDimension = otherPlayer;
                             }
                         }
 
@@ -159,7 +160,7 @@ public class ClientTicker {
                             //player disconnected
                             dbg("detected target player not on server");
                         } else {
-                            if (foundPlayerInDimension == null) {
+                            if (foundNonSpectatingPlayerInSameDimension == null) {
                                 dbg("detected player in diff dimension");
                                 diffDimensionPlayer = true;
                             }
@@ -181,13 +182,54 @@ public class ClientTicker {
                          * check and fix invalid spectating player
                          */
 
-                        if (foundPlayerInDimension != null && foundPlayerInDimension != specEnt) {
+                        if (foundNonSpectatingPlayerInSameDimension != null && foundNonSpectatingPlayerInSameDimension != specEnt) {
                             ghostPlayer = true;
                         }
 
                         if (ghostPlayer) {
                             clientPlayer.sendChatMessage("/spectate");
                             clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
+                        }
+
+                        boolean noPlayerToTrack = foundNonSpectatingPlayerInSameDimension == null && !diffDimensionPlayer;
+
+                        boolean usePlayerList = true;
+                        if (usePlayerList/* && noPlayerToTrack*/ && !csvSpecPlayers.equals("") && !csvSpecPlayers.equals("OFF")) {
+
+                            dbg("spec cycle starting: " + csvSpecPlayers);
+
+                            String[] names = csvSpecPlayers.split(",");
+                            boolean abort = false;
+                            for (int i = 0; i < names.length; i++) {
+                                if (abort) break;
+                                names[i] = names[i].trim();
+
+                                dbg("spec cycle considering: " + names[i]);
+
+                                //lets only look for players in same dimension, since we cant lookup cross dimension players without teleporting everywhere
+                                AbstractClientPlayerEntity foundNonSpectatingPlayerInSameDimension2 = null;
+                                for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
+                                    if (abort) break;
+                                    if (otherPlayer.getName().getFormattedText().equals(names[i])) {
+                                        foundNonSpectatingPlayerInSameDimension2 = otherPlayer;
+
+                                        if (!lastPlayerSpectated.equals(foundNonSpectatingPlayerInSameDimension2.getName().getFormattedText())) {
+                                            lastPlayerSpectated = foundNonSpectatingPlayerInSameDimension2.getName().getFormattedText();
+                                            dbg("spec cycle found: " + names[i] + " in dim to spectate, setting " + lastPlayerSpectated);
+                                            clientPlayer.sendChatMessage("/spectate");
+                                            clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
+                                            abort = true;
+                                        } else {
+                                            //found self, its a match just dont do anything and abort
+                                            abort = true;
+                                        }
+                                    }
+                                }
+
+
+                            }
+
+
                         }
                     }
                 }
@@ -199,10 +241,20 @@ public class ClientTicker {
                 }
 
             }
+        }
+    }
 
-
-
-
+    public static void clientChatEvent(ClientChatEvent event) {
+        dbg("intercepting chat event: " + event.getMessage());
+        if (event.getMessage().startsWith("/mp_spec_csv")) {
+            dbg("mp_spec_csv firing");
+            try {
+                String[] args = event.getMessage().split(" ");
+                csvSpecPlayers = args[1];
+                dbg("csvSpecPlayers set to: " + csvSpecPlayers);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
