@@ -108,161 +108,66 @@ public class ClientTicker {
 
             if (specEnt != null && player != null && player.world != null && player.isSpectator()) {
 
-                boolean try1 = false;
-                if (try1) {
+                if (player.world.getWorldInfo().getGameTime() % (20*2) == 0) {
 
-                    if (clientPlayer.isSneaking()) {
-                        keepSpectatingPlayer = false;
-                        lastPlayerSpectated = "";
-                        System.out.println("setting keepSpectatingPlayer = false");
+                    //updated tracked data
+                    if (specEnt != clientPlayer) {
+                        lastPlayerSpectated = specEnt.getName().getFormattedText();
+                        keepSpectatingPlayer = true;
                     }
 
-                    if (player.world.getWorldInfo().getGameTime() % (20*2) == 0) {
+                    if (keepSpectatingPlayer && !lastPlayerSpectated.equals("")) {
+                        boolean ghostPlayer = false;
+                        boolean diffDimensionPlayer = false;
 
-                        System.out.println("keepSpectatingPlayer = " + keepSpectatingPlayer);
-
-                        if (specEnt != clientPlayer) {
-
-                            System.out.println("specEnt != clientPlayer");
-
-                            AbstractClientPlayerEntity foundPlayerEnt = null;
-                            //verify the player is not a ghost fake player theyre spectating
-                            for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
-                                if (otherPlayer.getName().getFormattedText().equals(lastPlayerSpectated)) {
-                                    foundPlayerEnt = otherPlayer;
-                                }
+                        AbstractClientPlayerEntity foundPlayerInDimension = null;
+                        for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
+                            if (otherPlayer.getName().getFormattedText().equals(lastPlayerSpectated)) {
+                                foundPlayerInDimension = otherPlayer;
                             }
+                        }
 
-                            if (foundPlayerEnt != null) {
-                                if (foundPlayerEnt != specEnt) {
-                                    System.out.println("detected mismatched entity reference, updating to new entity via /spectate command");
-                                    //have to send empty command to unspectate so following command works
-                                    clientPlayer.sendChatMessage("/spectate");
-                                    clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                                }
-                            } else {
-                                ClientPlayNetHandler clientplaynethandler = mc.player.connection;
-                                NetworkPlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
-                                if (netInfo == null) {
-                                    //player disconnected
-                                    System.out.println("detected target player not on server");
-                                } else {
-                                    //player in server but other dimension
-                                    System.out.println("detected target player in server but in different dimension");
-                                    clientPlayer.sendChatMessage("/tp " + clientPlayer.getName().getFormattedText() + " " + lastPlayerSpectated);
-                                    clientPlayer.sendChatMessage("/spectate");
-                                    clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                                }
-                            }
+                        /**
+                         * check and fix diff dimension spectating
+                         */
 
-                            System.out.println("specEnt name: " + specEnt.getName().getFormattedText());
-                            System.out.println("clientPlayer name: " + clientPlayer.getName().getFormattedText());
-                            System.out.println("specEnt: " + specEnt);
-                            System.out.println("clientPlayer: " + clientPlayer);
-                            System.out.println("getRenderViewEntity pos: " + specEnt.getPosX() + " - " + specEnt.getPosZ());
-                            System.out.println("clientPlayer pos: " + clientPlayer.getPosX() + " - " + clientPlayer.getPosZ());
-                            System.out.println("syncing position to spectating player");
-
-                            if (specEnt instanceof PlayerEntity) {
-                                if (!lastPlayerSpectated.equals(specEnt.getName().getFormattedText())) {
-                                    lastPlayerSpectated = specEnt.getName().getFormattedText();
-                                    keepSpectatingPlayer = true;
-                                    System.out.println("updating lastPlayerSpectated to " + lastPlayerSpectated);
-                                }
-                            }
-
-                            //actual fix for out of rendered chunk area
-                            clientPlayer.setPosition(specEnt.getPosX(), specEnt.getPosY(), specEnt.getPosZ());
+                        ClientPlayNetHandler clientplaynethandler = mc.player.connection;
+                        NetworkPlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
+                        if (netInfo == null) {
+                            //player disconnected
+                            System.out.println("detected target player not on server");
                         } else {
-
-                            //this case will be true when teleport code above runs, then this should respectate player, might be enough
-
-                            System.out.println("specEnt == clientPlayer");
-                            if (keepSpectatingPlayer) {
-                                System.out.println("keepSpectatingPlayer == true");
-                                System.out.println("lastPlayerSpectated currently: " + lastPlayerSpectated);
-                                if (!lastPlayerSpectated.equals("")) {
-                                    boolean foundPlayer = false;
-                                    //verify the player is actually on the server still
-                                    for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
-                                        if (otherPlayer.getName().getFormattedText().equals(lastPlayerSpectated)) {
-                                            foundPlayer = true;
-                                        }
-                                    }
-                                    if (foundPlayer) {
-                                        System.out.println("sending spectate command: " + "/spectate " + lastPlayerSpectated);
-                                        clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                                    } else {
-                                        System.out.println("DEBUG: couldnt find player to keep spectating: " + lastPlayerSpectated);
-                                    }
-                                }
-
+                            if (foundPlayerInDimension == null) {
+                                System.out.println("detected player in diff dimension");
+                                diffDimensionPlayer = true;
                             }
                         }
-                    }
-                } else {
 
-                    if (player.world.getWorldInfo().getGameTime() % (20*2) == 0) {
-
-                        //updated tracked data
-                        if (specEnt != clientPlayer) {
-                            lastPlayerSpectated = specEnt.getName().getFormattedText();
-                            keepSpectatingPlayer = true;
+                        if (diffDimensionPlayer) {
+                            clientPlayer.sendChatMessage("/tp " + clientPlayer.getName().getFormattedText() + " " + lastPlayerSpectated);
+                            clientPlayer.sendChatMessage("/spectate");
+                            clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
                         }
 
-                        if (keepSpectatingPlayer && !lastPlayerSpectated.equals("")) {
-                            boolean ghostPlayer = false;
-                            boolean diffDimensionPlayer = false;
+                        /**
+                         * check and fix invalid spectating player
+                         */
 
-                            AbstractClientPlayerEntity foundPlayerInDimension = null;
-                            for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
-                                if (otherPlayer.getName().getFormattedText().equals(lastPlayerSpectated)) {
-                                    foundPlayerInDimension = otherPlayer;
-                                }
-                            }
+                        if (foundPlayerInDimension != null && foundPlayerInDimension != specEnt) {
+                            ghostPlayer = true;
+                        }
 
-                            /**
-                             * check and fix diff dimension spectating
-                             */
-
-                            ClientPlayNetHandler clientplaynethandler = mc.player.connection;
-                            NetworkPlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
-                            if (netInfo == null) {
-                                //player disconnected
-                                System.out.println("detected target player not on server");
-                            } else {
-                                if (foundPlayerInDimension == null) {
-                                    System.out.println("detected player in diff dimension");
-                                    diffDimensionPlayer = true;
-                                }
-                            }
-
-                            if (diffDimensionPlayer) {
-                                clientPlayer.sendChatMessage("/tp " + clientPlayer.getName().getFormattedText() + " " + lastPlayerSpectated);
-                                clientPlayer.sendChatMessage("/spectate");
-                                clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                            }
-
-                            /**
-                             * check and fix invalid spectating player
-                             */
-
-                            if (foundPlayerInDimension != null && foundPlayerInDimension != specEnt) {
-                                ghostPlayer = true;
-                            }
-
-                            if (ghostPlayer) {
-                                clientPlayer.sendChatMessage("/spectate");
-                                clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                            }
+                        if (ghostPlayer) {
+                            clientPlayer.sendChatMessage("/spectate");
+                            clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
                         }
                     }
+                }
 
-                    if (clientPlayer.isSneaking()) {
-                        keepSpectatingPlayer = false;
-                        lastPlayerSpectated = "";
-                        System.out.println("setting keepSpectatingPlayer = false");
-                    }
+                if (clientPlayer.isSneaking()) {
+                    keepSpectatingPlayer = false;
+                    lastPlayerSpectated = "";
+                    System.out.println("setting keepSpectatingPlayer = false");
                 }
 
             }
