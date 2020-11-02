@@ -44,6 +44,9 @@ public class ClientTicker {
     //spectate stuff
     public static boolean keepSpectatingPlayer = false;
     public static String lastPlayerSpectated = "";
+    public static long lastTick = 0;
+    public static boolean debug = true;
+    public static int syncDelay = 5000;
 
     public static void tickInit() {
         lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vec2f(1, 0));
@@ -96,10 +99,21 @@ public class ClientTicker {
             }
         }
 
+        tickSpectating();
+    }
+
+    public static void tickSpectating() {
+        PlayerEntity player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getRenderViewEntity();
+        Minecraft mc = Minecraft.getInstance();
+        long curTime = System.currentTimeMillis();
+
+        if (player == null || camera == null) return;
+
+
         /**
          * This fixes the vanilla bug of the client spectate player not having its position updated when its spectating a player, resulting in unloaded chunks visually
-         * TODO: make it track players across dimensions
-         * - can use /spectate player command to resync it when detected broken
+         * - also now tracks players across dimensions
          */
         boolean spectateFix = true;
         if (spectateFix) {
@@ -107,13 +121,21 @@ public class ClientTicker {
             ClientPlayerEntity clientPlayer = mc.player;
 
             if (specEnt != null && player != null && player.world != null && player.isSpectator()) {
+                if (curTime > lastTick + syncDelay) {
 
-                if (player.world.getWorldInfo().getGameTime() % (20*2) == 0) {
+                    dbg("curTime: " + curTime);
+                    dbg("lastTick: " + lastTick);
+
+                    lastTick = curTime;
 
                     //updated tracked data
                     if (specEnt != clientPlayer) {
                         lastPlayerSpectated = specEnt.getName().getFormattedText();
                         keepSpectatingPlayer = true;
+
+                        //apply the chunk rendering out of range fix
+                        dbg("syncing client player to spectator position: " + specEnt);
+                        clientPlayer.setPosition(specEnt.getPosX(), specEnt.getPosY(), specEnt.getPosZ());
                     }
 
                     if (keepSpectatingPlayer && !lastPlayerSpectated.equals("")) {
@@ -135,15 +157,21 @@ public class ClientTicker {
                         NetworkPlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
                         if (netInfo == null) {
                             //player disconnected
-                            System.out.println("detected target player not on server");
+                            dbg("detected target player not on server");
                         } else {
                             if (foundPlayerInDimension == null) {
-                                System.out.println("detected player in diff dimension");
+                                dbg("detected player in diff dimension");
                                 diffDimensionPlayer = true;
                             }
                         }
 
-                        if (diffDimensionPlayer) {
+                        //edge case, mc.world.getPlayers() doesnt have spectators in it, so spectating a spectator breaks above logic
+                        boolean isSpectatingASpectator = false;
+                        if (specEnt != clientPlayer && specEnt.isSpectator()) {
+                            isSpectatingASpectator = true;
+                        }
+
+                        if (diffDimensionPlayer && !isSpectatingASpectator) {
                             clientPlayer.sendChatMessage("/tp " + clientPlayer.getName().getFormattedText() + " " + lastPlayerSpectated);
                             clientPlayer.sendChatMessage("/spectate");
                             clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
@@ -167,7 +195,7 @@ public class ClientTicker {
                 if (clientPlayer.isSneaking()) {
                     keepSpectatingPlayer = false;
                     lastPlayerSpectated = "";
-                    System.out.println("setting keepSpectatingPlayer = false");
+                    dbg("setting keepSpectatingPlayer = false");
                 }
 
             }
@@ -178,15 +206,10 @@ public class ClientTicker {
         }
     }
 
-    public static void clientChatEvent(ClientChatEvent event) {
-        /*if (event.getMessage().startsWith("/spectate")) {
-            String[] strSplit = event.getMessage().split(" ");
-            if (strSplit.length > 1) {
-                String nameToSpectate = strSplit[1];
-
-                lastPlayerSpectated = nameToSpectate;
-            }
-        }*/
+    public static void dbg(Object obj) {
+        if (debug) {
+            System.out.println(obj);
+        }
     }
 
     public static void tickDodging() {

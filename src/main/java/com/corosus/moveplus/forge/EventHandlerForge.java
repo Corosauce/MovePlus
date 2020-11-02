@@ -41,11 +41,5 @@ public class EventHandlerForge {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
-    @SubscribeEvent(priority = EventPriority.LOW)
-    public void tickClient(ClientChatEvent event) {
-        ClientTicker.clientChatEvent(event);
-    }
-
 
 }
