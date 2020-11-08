@@ -5,7 +5,10 @@ import com.syszee.mod.common.registry.ModEntities;
 import com.syszee.mod.common.registry.ModItems;
 import com.syszee.mod.common.registry.ModSounds;
 import com.syszee.mod.datagen.*;
+import io.github.ocelot.sonar.Sonar;
+import io.github.ocelot.sonar.common.util.SortedItemGroup;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -20,9 +23,12 @@ public class ModMain
 {
     public static final String MOD_ID = "example";
 
+//    public static final SortedItemGroup TAB = new SortedItemGroup(MOD_ID);
+
     public ModMain()
     {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        Sonar.init(bus);
         bus.addListener(this::setup);
         bus.addListener(this::clientSetup);
         bus.addListener(this::setupDataGens);

@@ -14,6 +14,8 @@ public class ModItems
 
     // public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example", () -> new Item(new Item.Properties().group(ItemGroup.MISC)));
 
+    /* Registry Methods */
+
     /**
      * Registers a new item under the specified name.
      *

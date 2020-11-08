@@ -11,6 +11,8 @@ public class ModTags
 {
 //    public static final ITag.INamedTag<Item> EXAMPLE = makeItemWrapperTag("example");
 
+    /* Registry Methods */
+
     /**
      * Creates a new tag wrapper using the specified name.
      *
