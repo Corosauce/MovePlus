@@ -17,6 +17,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponent;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
@@ -252,6 +255,8 @@ public class ClientTicker {
                 String[] args = event.getMessage().split(" ");
                 csvSpecPlayers = args[1];
                 dbg("csvSpecPlayers set to: " + csvSpecPlayers);
+                Minecraft.getInstance().ingameGUI.addChatMessage(ChatType.GAME_INFO, new StringTextComponent("csvSpecPlayers set to: " + csvSpecPlayers));
+                event.setCanceled(true);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
