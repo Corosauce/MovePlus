@@ -6,9 +6,7 @@ import com.syszee.mod.common.registry.ModItems;
 import com.syszee.mod.common.registry.ModSounds;
 import com.syszee.mod.datagen.*;
 import io.github.ocelot.sonar.Sonar;
-import io.github.ocelot.sonar.common.util.SortedItemGroup;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -31,7 +29,7 @@ public class ModMain
         Sonar.init(bus);
         bus.addListener(this::setup);
         bus.addListener(this::clientSetup);
-        bus.addListener(this::setupDataGens);
+        bus.addListener(this::dataSetup);
 
         ModItems.ITEMS.register(bus);
         ModBlocks.BLOCKS.register(bus);
@@ -50,7 +48,7 @@ public class ModMain
     {
     }
 
-    private void setupDataGens(GatherDataEvent event)
+    private void dataSetup(GatherDataEvent event)
     {
         DataGenerator dataGenerator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
