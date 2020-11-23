@@ -1,5 +1,6 @@
 package com.corosus.moveplus.mixin;
 
+import com.corosus.moveplus.config.MovePlusCfgForge;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -43,8 +44,10 @@ public abstract class MixinEntityRenderer<T extends Entity> {
         double d1 = livingEntityIn.getPosY() - y;
         double d2 = livingEntityIn.getPosZ() - z;
         double d3 = d0 * d0 + d1 * d1 + d2 * d2;
-        if (d3 > 16 * 16) {
-            return false;
+        if (d3 > MovePlusCfgForge.GENERAL.entityRenderRangeMax.get() * MovePlusCfgForge.GENERAL.entityRenderRangeMax.get()) {
+            if (!MovePlusCfgForge.GENERAL.entityRenderLimitModdedOnly.get() || !livingEntityIn.getClass().getCanonicalName().startsWith("net.minecraft")) {
+                return false;
+            }
         }
         return livingEntityIn.isInRangeToRenderDist(d3);
     }

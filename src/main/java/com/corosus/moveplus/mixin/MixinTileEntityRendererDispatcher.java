@@ -1,5 +1,6 @@
 package com.corosus.moveplus.mixin;
 
+import com.corosus.moveplus.config.MovePlusCfgForge;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -29,7 +30,11 @@ public abstract class MixinTileEntityRendererDispatcher {
         }*/
 
         double dist = getDistanceSq(tileEntityIn, this.renderInfo.getProjectedView().x, this.renderInfo.getProjectedView().y, this.renderInfo.getProjectedView().z);
-        if (dist > 16 * 16) return;
+        if (dist > MovePlusCfgForge.GENERAL.tileEntityRenderRangeMax.get() * MovePlusCfgForge.GENERAL.tileEntityRenderRangeMax.get()) {
+            if (!MovePlusCfgForge.GENERAL.tileEntityRenderLimitModdedOnly.get() || !tileEntityIn.getClass().getCanonicalName().startsWith("net.minecraft")) {
+                return;
+            }
+        }
         TileEntityRenderer<E> tileentityrenderer = net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher.instance.getRenderer(tileEntityIn);
         if (tileentityrenderer != null) {
             if (tileEntityIn.hasWorld() && tileEntityIn.getType().isValidBlock(tileEntityIn.getBlockState().getBlock())) {

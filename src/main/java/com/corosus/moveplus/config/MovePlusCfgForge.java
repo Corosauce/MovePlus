@@ -25,6 +25,12 @@ public class MovePlusCfgForge {
         public final DoubleValue groundDodgeForceHorizontal;
         public final DoubleValue groundDodgeForceVertical;
 
+        public final DoubleValue tileEntityRenderRangeMax;
+        public final DoubleValue entityRenderRangeMax;
+
+        public final BooleanValue tileEntityRenderLimitModdedOnly;
+        public final BooleanValue entityRenderLimitModdedOnly;
+
         private CategoryGeneral() {
             CLIENT_BUILDER.comment("General mod settings").push("general");
 
@@ -48,6 +54,18 @@ public class MovePlusCfgForge {
 
             groundDodgeForceVertical = CLIENT_BUILDER
                     .defineInRange("groundDodgeForceVertical", 0.4D, 0D, 0.5D);
+
+            tileEntityRenderRangeMax = CLIENT_BUILDER
+                    .defineInRange("tileEntityRenderRangeMax", 64, 1D, Double.MAX_VALUE);
+
+            entityRenderRangeMax = CLIENT_BUILDER
+                    .defineInRange("entityRenderRangeMax", 64, 1D, Double.MAX_VALUE);
+
+            tileEntityRenderLimitModdedOnly = CLIENT_BUILDER
+                    .define("tileEntityRenderLimitModdedOnly", true);
+
+            entityRenderLimitModdedOnly = CLIENT_BUILDER
+                    .define("entityRenderLimitModdedOnly", true);
 
             CLIENT_BUILDER.pop();
         }
