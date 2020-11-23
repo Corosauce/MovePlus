@@ -3,7 +3,8 @@
   "package": "com.corosus.moveplus.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "moveplus.refmap.json",
-  "client": ["MixinTileEntityRendererDispatcher"],
+  "client": ["MixinTileEntityRendererDispatcher",
+    "MixinEntityRenderer"],
   "injectors": {
     "defaultRequire": 1
   },
