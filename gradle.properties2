@@ -11,8 +11,8 @@ forge=35.0.18
 mappings=20201028-1.16.3
 mappingsChannel=snapshot
 
-modName=Turkey Mod
-modId=moveplus
+modName=Example Mod
+modId=example
 modVersion=1.0.0
 
 sonar=3c15c02

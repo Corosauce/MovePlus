@@ -1,0 +1,23 @@
+modLoader="javafml"
+loaderVersion="[34,)"
+[[mods]]
+modId="moveplus"
+version="${file.jarVersion}"
+displayName="Move Plus"
+authors="Corosus"
+description='''
+Makes you do the move thing more
+'''
+
+[[dependencies.moveplus]]
+    modId="forge"
+    mandatory=true
+    versionRange="[34,)"
+    ordering="NONE"
+    side="CLIENT"
+[[dependencies.moveplus]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.3]"
+    ordering="NONE"
+    side="CLIENT"

@@ -6,11 +6,9 @@ buildscript {
         maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
         mavenCentral()
-        maven {url='https://dist.creeper.host/Sponge/maven'}
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
@@ -20,7 +18,6 @@ plugins {
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
-apply plugin: 'org.spongepowered.mixin'
 
 version = "${project.minecraft}-${project.modVersion}"
 group = 'com.syszee'
@@ -44,7 +41,6 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run/client')
-            arg "-mixin.config=ltweather.mixins.json"
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -96,9 +92,6 @@ dependencies {
     compileOnly "com.github.Ocelot5836:Sonar:${project.sonar}:api"
     runtimeOnly fg.deobf("com.github.Ocelot5836:Sonar:${project.sonar}")
     shade "com.github.Ocelot5836:Sonar:${project.sonar}"
-
-    // Annotation Processors
-    annotationProcessor 'org.spongepowered:mixin:0.8:processor'
 }
 
 processResources {
@@ -117,10 +110,6 @@ processResources {
     }
 }
 
-mixin {
-    add sourceSets.main, "moveplus.refmap.json"
-}
-
 jar {
     manifest {
         attributes([
@@ -131,7 +120,6 @@ jar {
             "Implementation-Version"  : "${version}",
             "Implementation-Vendor"   :"SystemZee",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "MixinConfigs": "moveplus.mixins.json"
         ])
     }
 }
