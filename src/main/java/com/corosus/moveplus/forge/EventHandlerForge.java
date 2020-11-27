@@ -1,5 +1,6 @@
 package com.corosus.moveplus.forge;
 
+import com.corosus.moveplus.command.CommandReloadConfig;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
@@ -7,6 +8,9 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ConfigTracker;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 @Mod.EventBusSubscriber(modid = MovePlus.MODID)
 public class EventHandlerForge {
@@ -45,6 +49,16 @@ public class EventHandlerForge {
     @SubscribeEvent(priority = EventPriority.LOW)
     public void tickClient(ClientChatEvent event) {
         ClientTicker.clientChatEvent(event);
+    }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void clientChat(ClientChatEvent event) {
+        String msg = event.getMessage();
+
+        if (msg.equals("/" + CommandReloadConfig.getCommandName() + " client")) {
+            ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
+        }
     }
 
 
