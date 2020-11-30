@@ -24,6 +24,7 @@ import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
+import org.lwjgl.system.CallbackI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class ClientTicker {
     public static boolean debug = true;
     public static int syncDelay = 5000;
     public static String csvSpecPlayers = "";
+
+    public static HashMap<Class, String> cacheClassToCanonicalName = new HashMap<>();
 
     public static void tickInit() {
         lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vector2f(1, 0));
@@ -104,6 +107,7 @@ public class ClientTicker {
         }
 
         tickSpectating();
+        ChestSorter.tickClient();
     }
 
     public static void tickSpectating() {
@@ -537,6 +541,13 @@ public class ClientTicker {
         tessellator.draw();
         bufferbuilder.setTranslation(0.0D, 0.0D, 0.0D);
         GlStateManager.enableTexture();*/
+    }
+
+    public static String getCanonicalNameCached(Class clazz) {
+        if (!cacheClassToCanonicalName.containsKey(clazz)) {
+            cacheClassToCanonicalName.put(clazz, clazz.getCanonicalName());
+        }
+        return cacheClassToCanonicalName.get(clazz);
     }
 
 }

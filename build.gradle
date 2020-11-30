@@ -44,7 +44,7 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run/client')
-            arg "-mixin.config=ltweather.mixins.json"
+            arg "-mixin.config=moveplus.mixins.json"
             property 'forge.logging.console.level', 'debug'
 
             mods {

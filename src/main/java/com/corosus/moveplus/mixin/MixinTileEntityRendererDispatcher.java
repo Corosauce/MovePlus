@@ -1,6 +1,7 @@
 package com.corosus.moveplus.mixin;
 
 import com.corosus.moveplus.config.MovePlusCfgForge;
+import com.corosus.moveplus.forge.ClientTicker;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -25,13 +26,9 @@ public abstract class MixinTileEntityRendererDispatcher {
 
     @Overwrite
     public <E extends TileEntity> void renderTileEntity(E tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn) {
-        /*if (!tileEntityIn.getClass().getCanonicalName().contains("net.minecraft")) {
-            return;
-        }*/
-
         double dist = getDistanceSq(tileEntityIn, this.renderInfo.getProjectedView().x, this.renderInfo.getProjectedView().y, this.renderInfo.getProjectedView().z);
         if (dist > MovePlusCfgForge.GENERAL.tileEntityRenderRangeMax.get() * MovePlusCfgForge.GENERAL.tileEntityRenderRangeMax.get()) {
-            if (!MovePlusCfgForge.GENERAL.tileEntityRenderLimitModdedOnly.get() || !tileEntityIn.getClass().getCanonicalName().startsWith("net.minecraft")) {
+            if (!MovePlusCfgForge.GENERAL.tileEntityRenderLimitModdedOnly.get() || !ClientTicker.getCanonicalNameCached(tileEntityIn.getClass()).startsWith("net.minecraft")) {
                 return;
             }
         }
