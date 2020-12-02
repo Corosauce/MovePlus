@@ -30,7 +30,10 @@ public class UtilContainer {
 		int index = -1;
 
 		for (int i = findStart; i < findEnd; i++) {
-			ItemStack stack = (ItemStack) ((Slot)container.inventorySlots.get(i)).getStack();
+			ItemStack stack = container.inventorySlots.get(i).getStack();
+
+
+			System.out.println("comparing: " + itemStack + " vs " + stack);
 
 			if (isSame(itemStack, stack)) {
 				index = i;

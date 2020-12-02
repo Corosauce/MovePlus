@@ -1,15 +1,12 @@
 package com.corosus.moveplus.forge;
 
 import com.corosus.moveplus.config.MovePlusCfgForge;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.corosus.chestorganizer.sorting.ChestSorter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.network.play.ClientPlayNetHandler;
 import net.minecraft.client.network.play.NetworkPlayerInfo;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,14 +14,10 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponent;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
-import org.lwjgl.system.CallbackI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +47,8 @@ public class ClientTicker {
     public static String csvSpecPlayers = "";
 
     public static HashMap<Class, String> cacheClassToCanonicalName = new HashMap<>();
+
+    public static ChestSorter chestSorter = new ChestSorter();
 
     public static void tickInit() {
         lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vector2f(1, 0));
@@ -107,7 +102,7 @@ public class ClientTicker {
         }
 
         tickSpectating();
-        ChestSorter.tickClient();
+        chestSorter.tickClient();
     }
 
     public static void tickSpectating() {
