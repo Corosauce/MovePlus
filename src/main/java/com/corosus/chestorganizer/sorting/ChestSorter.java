@@ -20,6 +20,9 @@ public class ChestSorter {
 
     private HashMap<BlockPos, InventoryStorage> storageMemory = new HashMap<>();
 
+    //for preventing sorting from messing with items we had in our inventory before sorting
+    private HashMap<Integer, ItemStack> lookupPlayerPreSortSnapshotSlotMemoryToItem = new HashMap<>();
+
     private BlockPos lastLookedAtBlock = BlockPos.ZERO;
     private Screen lastScreenChecked = null;
 
@@ -56,11 +59,12 @@ public class ChestSorter {
 
                     InventoryStorage storage = getOrAddStorageIfPresent(mc.world, lastLookedAtBlock);
                     storage.resetActiveMemory();
-                    storage.getMemoryActivelyStored().addAll(screen.getContainer().inventorySlots);
+                    storage.addAllSlots(screen.getContainer().inventorySlots);
                     log("added or updated " + storage.getMemoryActivelyStored().size());
-                    for (Slot slot : storage.getMemoryActivelyStored()) {
-                        if (!slot.inventory.isEmpty()) {
-                            log("entry: " + slot.slotNumber + " - " + slot.inventory.getStackInSlot(slot.slotNumber));
+                    for (SlotMemory slot : storage.getMemoryActivelyStored()) {
+                        //TODO: this was incorrect, fix
+                        if (!slot.isEmpty()) {
+                            log("entry: " + slot.getSlotNumber() + " - " + slot.getStack());
                         }
                     }
                 } else {
@@ -79,21 +83,36 @@ public class ChestSorter {
                 //TODO: detect fullness and stop running this forever
 
                 if (isSorting) {
+
+                    //take the snapshot of player inventory if havent yet
+                    if (lookupPlayerPreSortSnapshotSlotMemoryToItem.isEmpty()) {
+                        log("making snapshot of player inventory");
+                        for (Slot slot : screen.getContainer().inventorySlots) {
+                            if (/*slot.getStack() != ItemStack.EMPTY && */slot.slotNumber >= blockStorageSize) {
+                                lookupPlayerPreSortSnapshotSlotMemoryToItem.put(slot.slotNumber, slot.getStack());
+                            }
+                        }
+                    }
+
                     if (storage.getType() == InventoryStorage.FlagType.DUMP) {
 
                         for (Slot slot : screen.getContainer().inventorySlots) {
                             if (slot.inventory.getStackInSlot(slot.slotNumber) != ItemStack.EMPTY && slot.slotNumber < blockStorageSize) {
-                                UtilContainer.clickSlot(mc.player, slot.slotNumber, UtilContainer.mouseLeftClick, ClickType.QUICK_MOVE);
+                                if (hasAPlaceToSortTo(slot.inventory.getStackInSlot(slot.slotNumber))) {
+                                    UtilContainer.clickSlot(mc.player, slot.slotNumber, UtilContainer.mouseLeftClick, ClickType.QUICK_MOVE);
+                                }
                             }
                         }
 
                     } else if (storage.getType() == InventoryStorage.FlagType.SORTED) {
 
-                        //log("try sort, slots: " + screen.getContainer().inventorySlots.size());
+                        //log("try sort, slots: " + screen.getContainer().inventorySlotMemorys.size());
                         for (Slot slot : screen.getContainer().inventorySlots) {
                             //log("lookup: " + slot.slotNumber + " - " + slot.getStack());
-                            if (slot.getStack() != ItemStack.EMPTY && slot.slotNumber >= blockStorageSize) {
+                            if (slot.getStack() != ItemStack.EMPTY && slot.slotNumber >= blockStorageSize && lookupPlayerPreSortSnapshotSlotMemoryToItem.get(slot.slotNumber) == ItemStack.EMPTY) {
                                 //log("lookup2: " + slot.getStack());
+                                //look for a match
+                                //TODO: add the extra memory check here too
                                 int blockStorageFoundID = UtilContainer.getFirstSlotContainingItem(screen.getContainer(), slot.getStack(), 0, blockStorageSize);
                                 if (blockStorageFoundID != -1) {
                                     UtilContainer.clickSlot(mc.player, slot.slotNumber, UtilContainer.mouseLeftClick, ClickType.QUICK_MOVE);
@@ -103,33 +122,7 @@ public class ChestSorter {
 
                     }
                 }
-
-                /*ItemStack stack = mc.player.inventory.getCurrentItem();
-                if (stack != ItemStack.EMPTY) {
-                    if (storageMemory.containsKey(lastLookedAtBlock)) {
-                        //InventoryStorage storage = storageMemory.get(lastLookedAtBlock);
-                        for (Slot entry2 : storage.getMemoryActivelyStored()) {
-                            if (entry2.inventory.getStackInSlot(entry2.slotNumber) != ItemStack.EMPTY) {
-                                if (entry2.inventory.getStackInSlot(entry2.slotNumber).getItem() == stack.getItem()) {
-
-                                }
-                            }
-                        }
-                        System.out.println("blockStorageSize: " + blockStorageSize);
-                        int blockStorageFoundID = UtilContainer.getFirstSlotContainingItem(screen.getContainer(), stack, 0, blockStorageSize);
-                        System.out.println("found block storage item at slot id: " + blockStorageFoundID);
-                        int playerFoundID = UtilContainer.getFirstSlotContainingItem(screen.getContainer(), stack, blockStorageSize+1, screen.getContainer().inventorySlots.size());
-                        System.out.println("found player storage item at slot id: " + playerFoundID);
-
-                        if (blockStorageFoundID != -1 && playerFoundID != -1) {
-                            //transfer
-                            UtilContainer.clickSlot(mc.player, playerFoundID, UtilContainer.mouseLeftClick, ClickType.QUICK_MOVE);
-                        }
-                    }
-                }*/
             }
-
-            //screen.getContainer().
         }
 
         //TODO: validate positions incase chests move
@@ -152,17 +145,6 @@ public class ChestSorter {
                 }
                 if (data != null) {
                     mc.world.addParticle(data, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 0.0D, 0.0D, 0.0D);
-                }
-            }
-
-            ItemStack stack = mc.player.inventory.getCurrentItem();
-            if (stack != ItemStack.EMPTY) {
-                for (Slot entry2 : storage.getMemoryActivelyStored()) {
-                    if (entry2.inventory.getStackInSlot(entry2.slotNumber) != ItemStack.EMPTY) {
-                        if (entry2.inventory.getStackInSlot(entry2.slotNumber).getItem() == stack.getItem()) {
-                            //mc.world.addParticle(ParticleTypes.FLAME, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 0.0D, 0.0D, 0.0D);
-                        }
-                    }
                 }
             }
         }
@@ -206,7 +188,7 @@ public class ChestSorter {
     public InventoryStorage getOrAddStorageIfPresent(World world, BlockPos pos) {
         if (storageMemory.containsKey(pos)) return storageMemory.get(pos);
         if (world.getTileEntity(pos) instanceof ChestTileEntity) {
-            InventoryStorage storage = new InventoryStorage(pos);
+            InventoryStorage storage = new InventoryStorage(pos, world.getDimensionType());
             storageMemory.put(pos, storage);
             return storage;
         }
@@ -217,6 +199,9 @@ public class ChestSorter {
         //TODO: take snapshot of inventory before using it so you dont sort their whole inventory
         isSorting = !isSorting;
         log("sorting " + (isSorting ? "on" : "off"));
+        if (isSorting) {
+            lookupPlayerPreSortSnapshotSlotMemoryToItem.clear();
+        }
     }
 
     public void tickSorting() {
@@ -234,10 +219,31 @@ public class ChestSorter {
             BlockPos pos = entry.getKey();
             InventoryStorage storage = entry.getValue();
 
-            if (!(mc.world.getTileEntity(pos) instanceof ChestTileEntity)) {
+            if (storage.getDimType() == mc.world.getDimensionType() &&
+                    !(mc.world.getTileEntity(pos) instanceof ChestTileEntity) &&
+            pos.withinDistance(mc.player.getPosition(), 20)) {
                 it.remove();
             }
         }
+    }
+
+    public boolean hasAPlaceToSortTo(ItemStack stack) {
+        Iterator<Map.Entry<BlockPos, InventoryStorage>> it = storageMemory.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<BlockPos, InventoryStorage> entry = it.next();
+            BlockPos pos = entry.getKey();
+            InventoryStorage storage = entry.getValue();
+
+            if (storage.getType() == InventoryStorage.FlagType.SORTED ||
+                    storage.getType() == InventoryStorage.FlagType.OVERFLOW) {
+                for (SlotMemory slot : storage.getMemoryActivelyStored()) {
+                    if (UtilContainer.isSame(stack, slot.getStack())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public void log(Object obj) {
