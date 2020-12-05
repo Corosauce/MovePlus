@@ -1,12 +1,17 @@
 package com.corosus.chestorganizer.sorting;
 
+import com.mojang.serialization.DataResult;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.DimensionType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 public class InventoryStorage {
 
@@ -22,8 +27,12 @@ public class InventoryStorage {
     public enum FlagType {
         UNMARKED,
         SORTED,
-        OVERFLOW,
+        OVERFLOW, //kinda still relevant, but we will treat vertical stacked chests as a shared collection to compare against
         DUMP;
+
+        private static final Map<Integer, FlagType> lookup = new HashMap<Integer, FlagType>();
+        static { for(FlagType e : EnumSet.allOf(FlagType.class)) { lookup.put(e.ordinal(), e); } }
+        public static FlagType get(int intValue) { return lookup.get(intValue); }
     }
 
     public InventoryStorage(BlockPos pos, DimensionType dimType) {
@@ -78,5 +87,51 @@ public class InventoryStorage {
 
     public DimensionType getDimType() {
         return dimType;
+    }
+
+    public CompoundNBT writeToNBT() {
+        CompoundNBT nbt = new CompoundNBT();
+
+        nbt.putInt("posX", pos.getX());
+        nbt.putInt("posY", pos.getY());
+        nbt.putInt("posZ", pos.getZ());
+
+        nbt.putInt("type", type.ordinal());
+        //nbt.putString("dimType", dimType.toString());
+
+        DataResult<INBT> dataresult = DimensionType.DIMENSION_TYPE_CODEC.encodeStart(NBTDynamicOps.INSTANCE, () -> this.dimType);
+        nbt.put("dimType", dataresult.result().get());
+
+        ListNBT list = new ListNBT();
+        for (SlotMemory storage : memoryActivelyStored) {
+            list.add(storage.writeToNBT());
+        }
+
+        nbt.put("activeMemory", list);
+
+        return nbt;
+    }
+
+    public static InventoryStorage fromNBT(CompoundNBT nbt) {
+        BlockPos pos = new BlockPos(nbt.getInt("posX"), nbt.getInt("posY"), nbt.getInt("posZ"));
+        DimensionType dimType = DimensionType.DIMENSION_TYPE_CODEC.parse(NBTDynamicOps.INSTANCE, nbt.getCompound("dimType")).result().get().get();
+        InventoryStorage storage = new InventoryStorage(pos, dimType);
+
+        storage.setType(FlagType.get(nbt.getInt("type")));
+
+        ListNBT listnbt2 = nbt.getList("activeMemory", 10);
+        for(int k = 0; k < listnbt2.size(); ++k) {
+            storage.getMemoryActivelyStored().add(SlotMemory.fromNBT(listnbt2.getCompound(k)));
+        }
+
+        return storage;
+    }
+
+    public List<ItemStack> getMemoryActivelyStoredAsItemStacks() {
+        List<ItemStack> list = new ArrayList<>();
+        for (SlotMemory slot : memoryActivelyStored) {
+            list.add(slot.getStack());
+        }
+        return list;
     }
 }

@@ -45,6 +45,19 @@ public class UtilContainer {
 	}
 
 	public static boolean isSame(ItemStack stack1, ItemStack stack2) {
+		if (stack1.getItem() != stack2.getItem()) return false;
+		return ItemStack.areItemStackTagsEqual(stack1, stack2);
+
+		/*if (stack1.hasTag() != stack2.hasTag()) return false;
+		return (!stack1.hasTag() || stack1.getTag().equals(stack2.getTag())) && stack1.areCapsCompatible(stack2);*/
+	}
+
+	public static boolean isSameTags(ItemStack stack1, ItemStack stack2) {
+		return false;
+		//stack1.getShareTag()
+	}
+
+	public static boolean isSame2(ItemStack stack1, ItemStack stack2) {
 		return (stack1.getItem() == stack2.getItem());
 		/*if (stack1 == null || stack2 == null) return false;
 		if (stack1.getItem() == null || stack2.getItem() == null) {

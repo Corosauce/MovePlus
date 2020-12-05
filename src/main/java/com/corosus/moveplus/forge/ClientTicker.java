@@ -15,6 +15,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -61,7 +62,7 @@ public class ClientTicker {
         keyLastState.put(Minecraft.getInstance().gameSettings.keyBindRight, false);
     }
 
-    public static void tickClientRenderScreen() {
+    public static void tickClientRender() {
 
         PlayerEntity player = Minecraft.getInstance().player;
         Entity camera = Minecraft.getInstance().getRenderViewEntity();
@@ -74,6 +75,12 @@ public class ClientTicker {
                 tickDodging();
             }
         }
+    }
+
+    public static void tickClientRenderScreen(RenderGameOverlayEvent.Pre event) {
+
+        chestSorter.tickScreen(event);
+
     }
 
     public static void tickClientRenderWorldLast() {

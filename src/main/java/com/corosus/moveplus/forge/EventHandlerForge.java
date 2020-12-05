@@ -1,9 +1,12 @@
 package com.corosus.moveplus.forge;
 
 import com.corosus.moveplus.command.CommandReloadConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -11,6 +14,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
+
+import java.awt.*;
 
 @Mod.EventBusSubscriber(modid = MovePlus.MODID)
 public class EventHandlerForge {
@@ -27,7 +32,7 @@ public class EventHandlerForge {
     @SubscribeEvent(priority = EventPriority.LOW)
     public void tickClient(TickEvent.RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
-            ClientTicker.tickClientRenderScreen();
+            ClientTicker.tickClientRender();
         }
     }
 
@@ -59,6 +64,12 @@ public class EventHandlerForge {
         if (msg.equals("/" + CommandReloadConfig.getCommandName() + " client")) {
             ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
         }
+    }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void drawScreen(RenderGameOverlayEvent.Pre event) {
+        ClientTicker.tickClientRenderScreen(event);
     }
 
 
