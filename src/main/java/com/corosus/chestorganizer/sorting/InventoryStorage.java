@@ -10,14 +10,13 @@ import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.DimensionType;
 
-import java.io.IOException;
 import java.util.*;
 
 public class InventoryStorage {
 
     private FlagType type = FlagType.UNMARKED;
     private final BlockPos pos;
-    private final DimensionType dimType;
+    private final String dimName;
     //for items actually currently in the inventory
     private List<SlotMemory> memoryActivelyStored = new ArrayList<>();
     //for items we've ever had in the inventory, includes active and missing
@@ -35,9 +34,9 @@ public class InventoryStorage {
         public static FlagType get(int intValue) { return lookup.get(intValue); }
     }
 
-    public InventoryStorage(BlockPos pos, DimensionType dimType) {
+    public InventoryStorage(BlockPos pos, String dimType) {
         this.pos = pos;
-        this.dimType = dimType;
+        this.dimName = dimType;
     }
 
     public void addAllSlots(List<Slot> slots) {
@@ -73,8 +72,8 @@ public class InventoryStorage {
     public void cycleType() {
         if (type == FlagType.UNMARKED) type = FlagType.DUMP;
         else if (type == FlagType.DUMP) type = FlagType.SORTED;
-        else if (type == FlagType.SORTED) type = FlagType.OVERFLOW;
-        else if (type == FlagType.OVERFLOW) type = FlagType.UNMARKED;
+        else if (type == FlagType.SORTED) type = FlagType.UNMARKED;/*;
+        else if (type == FlagType.OVERFLOW) type = FlagType.UNMARKED;*/
     }
 
     public FlagType getType() {
@@ -85,8 +84,8 @@ public class InventoryStorage {
         this.type = type;
     }
 
-    public DimensionType getDimType() {
-        return dimType;
+    public String getDimName() {
+        return dimName;
     }
 
     public CompoundNBT writeToNBT() {
@@ -99,8 +98,7 @@ public class InventoryStorage {
         nbt.putInt("type", type.ordinal());
         //nbt.putString("dimType", dimType.toString());
 
-        DataResult<INBT> dataresult = DimensionType.DIMENSION_TYPE_CODEC.encodeStart(NBTDynamicOps.INSTANCE, () -> this.dimType);
-        nbt.put("dimType", dataresult.result().get());
+        nbt.putString("dimType", dimName);
 
         ListNBT list = new ListNBT();
         for (SlotMemory storage : memoryActivelyStored) {
@@ -114,8 +112,10 @@ public class InventoryStorage {
 
     public static InventoryStorage fromNBT(CompoundNBT nbt) {
         BlockPos pos = new BlockPos(nbt.getInt("posX"), nbt.getInt("posY"), nbt.getInt("posZ"));
-        DimensionType dimType = DimensionType.DIMENSION_TYPE_CODEC.parse(NBTDynamicOps.INSTANCE, nbt.getCompound("dimType")).result().get().get();
-        InventoryStorage storage = new InventoryStorage(pos, dimType);
+        String dimName = nbt.getString("dimType");
+        if (dimName.equals("")) dimName = "minecraft:overworld";
+        InventoryStorage storage = new InventoryStorage(pos, dimName);
+
 
         storage.setType(FlagType.get(nbt.getInt("type")));
 
@@ -133,5 +133,10 @@ public class InventoryStorage {
             list.add(slot.getStack());
         }
         return list;
+    }
+
+    public void reset() {
+        memoryActivelyStored.clear();
+        memoryPreviouslyStored.clear();
     }
 }

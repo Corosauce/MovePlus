@@ -91,6 +91,8 @@ public class ClientTicker {
         PlayerEntity player = Minecraft.getInstance().player;
         Entity camera = Minecraft.getInstance().getRenderViewEntity();
 
+        chestSorter.tickClient();
+
         if (player == null || camera == null) return;
 
         if (needsInit) {
@@ -109,7 +111,6 @@ public class ClientTicker {
         }
 
         tickSpectating();
-        chestSorter.tickClient();
     }
 
     public static void tickSpectating() {

@@ -39,6 +39,7 @@ public class MovePlus
 
         ClientRegistry.registerKeyBinding(Keybinds.sort);
         ClientRegistry.registerKeyBinding(Keybinds.cycle);
+        ClientRegistry.registerKeyBinding(Keybinds.visual);
 
         //TODO: off for 1.15
         /*eventBus.addListener(MovePlusCfgForge::onLoad);

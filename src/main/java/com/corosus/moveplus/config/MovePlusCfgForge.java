@@ -31,6 +31,9 @@ public class MovePlusCfgForge {
         public final BooleanValue tileEntityRenderLimitModdedOnly;
         public final BooleanValue entityRenderLimitModdedOnly;
 
+        public final BooleanValue chestSorterMatchTags;
+        public final BooleanValue chestSorterMatchChildClass;
+
         private CategoryGeneral() {
             CLIENT_BUILDER.comment("General mod settings").push("general");
 
@@ -66,6 +69,12 @@ public class MovePlusCfgForge {
 
             entityRenderLimitModdedOnly = CLIENT_BUILDER
                     .define("entityRenderLimitModdedOnly", true);
+
+            chestSorterMatchTags = CLIENT_BUILDER
+                    .define("chestSorterMatchTags", true);
+
+            chestSorterMatchChildClass = CLIENT_BUILDER
+                    .define("chestSorterMatchChildClass", true);
 
             CLIENT_BUILDER.pop();
         }
