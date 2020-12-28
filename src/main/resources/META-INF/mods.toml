@@ -1,0 +1,11 @@
+modLoader="javafml"
+loaderVersion="[34,)"
+license = "All Rights Reserved"
+[[mods]]
+modId="moveplus"
+version="${file.jarVersion}"
+displayName="Move Plus"
+authors="Corosus"
+description='''
+Steve go brrr
+'''
