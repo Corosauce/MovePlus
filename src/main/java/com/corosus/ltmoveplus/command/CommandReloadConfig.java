@@ -1,4 +1,4 @@
-package com.corosus.moveplus.command;
+package com.corosus.ltmoveplus.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;

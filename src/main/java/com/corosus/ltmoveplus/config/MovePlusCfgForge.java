@@ -1,10 +1,7 @@
-package com.corosus.moveplus.config;
+package com.corosus.ltmoveplus.config;
 
-import com.corosus.moveplus.forge.MovePlus;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.config.ConfigTracker;
-import net.minecraftforge.fml.config.ModConfig;
 
 import static net.minecraftforge.common.ForgeConfigSpec.*;
 
@@ -27,13 +24,14 @@ public class MovePlusCfgForge {
         public final DoubleValue groundDodgeForceVertical;
 
         private CategoryGeneral() {
+
             CLIENT_BUILDER.comment("General mod settings").push("general");
 
             useGroundDodge = CLIENT_BUILDER
-                    .define("useGroundDodge", true);
+                    .define("useGroundDodge", false);
 
             useLedgeClimb = CLIENT_BUILDER
-                    .define("useLedgeClimb", true);
+                    .define("useLedgeClimb", false);
 
             useCrawlAnywhere = CLIENT_BUILDER
                     .define("useCrawlAnywhere", true);
@@ -42,7 +40,7 @@ public class MovePlusCfgForge {
                     .defineInRange("doubleTapDodgeMaxTimeInMilliseconds", 300, 0, Integer.MAX_VALUE);
 
             knockbackResistAmount = CLIENT_BUILDER
-                    .defineInRange("knockbackResistAmount", 0.3D, 0D, 1D);
+                    .defineInRange("knockbackResistAmount", 0D, 0D, 1D);
 
             dontGroundDodgeIfSneaking = CLIENT_BUILDER
                     .define("dontGroundDodgeIfSneaking", true);
@@ -56,6 +54,7 @@ public class MovePlusCfgForge {
             CLIENT_BUILDER.pop();
         }
     }
+
     public static final ForgeConfigSpec CLIENT_CONFIG = CLIENT_BUILDER.build();
 
     //TODO: off for 1.15

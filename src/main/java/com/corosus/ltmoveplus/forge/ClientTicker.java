@@ -1,8 +1,8 @@
-package com.corosus.moveplus.forge;
+package com.corosus.ltmoveplus.forge;
 
-import com.corosus.moveplus.config.MovePlusCfgForge;
-import com.corosus.moveplus.network.MovePlusNetwork;
-import com.corosus.moveplus.network.ToServerPlayerCrawlState;
+import com.corosus.ltmoveplus.config.MovePlusCfgForge;
+import com.corosus.ltmoveplus.network.MovePlusNetwork;
+import com.corosus.ltmoveplus.network.ToServerPlayerCrawlState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;

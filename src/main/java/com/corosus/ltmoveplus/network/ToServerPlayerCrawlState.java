@@ -1,6 +1,6 @@
-package com.corosus.moveplus.network;
+package com.corosus.ltmoveplus.network;
 
-import com.corosus.moveplus.forge.EventHandlerForge;
+import com.corosus.ltmoveplus.forge.EventHandlerForge;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 

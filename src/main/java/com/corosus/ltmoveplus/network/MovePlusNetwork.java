@@ -1,6 +1,6 @@
-package com.corosus.moveplus.network;
+package com.corosus.ltmoveplus.network;
 
-import com.corosus.moveplus.forge.MovePlus;
+import com.corosus.ltmoveplus.forge.MovePlus;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;

@@ -1,14 +1,12 @@
-package com.corosus.moveplus.forge;
+package com.corosus.ltmoveplus.forge;
 
-import com.corosus.moveplus.command.CommandReloadConfig;
-import net.minecraft.client.Minecraft;
+import com.corosus.ltmoveplus.command.CommandReloadConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -19,7 +17,6 @@ import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.UUID;
 
