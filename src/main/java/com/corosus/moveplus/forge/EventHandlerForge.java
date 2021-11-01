@@ -55,7 +55,7 @@ public class EventHandlerForge {
                     //if (lookupPlayerUUIDToCrawlActive.containsKey(event.player.getUniqueID())) {
                     if (lookupPlayerUUIDToCrawlActive_Server.containsKey(event.player.getUniqueID()) && lookupPlayerUUIDToCrawlActive_Server.get(event.player.getUniqueID())) {
                         forcePlayerCrawling(event.player);
-                        System.out.println("forcing crawl for " + event.player);
+                        //System.out.println("forcing crawl for " + event.player);
                         //event.player.setSwimming(true);
                     } else {
                         //dont need to do anything if its off

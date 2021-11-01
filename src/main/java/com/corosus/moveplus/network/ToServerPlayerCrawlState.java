@@ -23,7 +23,7 @@ public class ToServerPlayerCrawlState {
 
 	public void handle(Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
-			System.out.println("received crawl packet: " + isCrawling);
+			//System.out.println("received crawl packet: " + isCrawling);
 			EventHandlerForge.setPlayerCrawlStateServer(ctx.get().getSender(), isCrawling);
 			//WATUT.playerManagerServer.getPlayerStatus(uuid).setStatusType(type);
 		});

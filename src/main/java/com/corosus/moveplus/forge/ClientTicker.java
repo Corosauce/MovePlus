@@ -44,7 +44,7 @@ public class ClientTicker {
     public static boolean keepSpectatingPlayer = false;
     public static String lastPlayerSpectated = "";
     public static long lastTick = 0;
-    public static boolean debug = true;
+    public static boolean debug = false;
     public static int syncDelay = 5000;
     public static String csvSpecPlayers = "";
 
