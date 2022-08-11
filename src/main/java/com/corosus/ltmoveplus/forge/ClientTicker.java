@@ -18,7 +18,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -78,10 +77,6 @@ public class ClientTicker {
                 tickDodging();
             }
         }
-    }
-
-    public static void tickClientRenderScreen(RenderGameOverlayEvent.Pre event) {
-
     }
 
     public static void tickClientRenderWorldLast() {

@@ -7,7 +7,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -110,12 +109,6 @@ public class EventHandlerForge {
         if (msg.equals("/" + CommandReloadConfig.getCommandName() + " client")) {
             ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
         }
-    }
-
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void drawScreen(RenderGameOverlayEvent.Pre event) {
-        ClientTicker.tickClientRenderScreen(event);
     }
 
 
