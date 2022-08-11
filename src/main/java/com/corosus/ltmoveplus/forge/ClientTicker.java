@@ -3,18 +3,20 @@ package com.corosus.ltmoveplus.forge;
 import com.corosus.ltmoveplus.config.MovePlusCfgForge;
 import com.corosus.ltmoveplus.network.MovePlusNetwork;
 import com.corosus.ltmoveplus.network.ToServerPlayerCrawlState;
+import com.mojang.math.Vector3d;
+import com.mojang.math.Vector3f;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.network.play.ClientPlayNetHandler;
-import net.minecraft.client.network.play.NetworkPlayerInfo;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.config.ConfigTracker;
@@ -32,13 +34,13 @@ public class ClientTicker {
     public static double prevMotionY;
     public static double prevMotionZ;*/
 
-    public static Vector3d prevMotion;
+    public static Vec3 prevMotion;
 
-    public static HashMap<KeyBinding, Long> keyTimesLastPressed = new HashMap<>();
-    public static HashMap<KeyBinding, Boolean> keyLastState = new HashMap<>();
+    public static HashMap<KeyMapping, Long> keyTimesLastPressed = new HashMap<>();
+    public static HashMap<KeyMapping, Boolean> keyLastState = new HashMap<>();
 
     //Vector2f used as such: forward speed, right speed
-    public static HashMap<KeyBinding, Vector2f> lookupKeyToDirection = new HashMap<>();
+    public static HashMap<KeyMapping, Vector3f> lookupKeyToDirection = new HashMap<>();
 
     //spectate stuff
     public static boolean keepSpectatingPlayer = false;
@@ -53,25 +55,25 @@ public class ClientTicker {
     public static boolean spectateFixes = false;
 
     public static void tickInit() {
-        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindForward, new Vector2f(1, 0));
-        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindBack, new Vector2f(-1, 0));
-        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindLeft, new Vector2f(0, -1));
-        lookupKeyToDirection.put(Minecraft.getInstance().gameSettings.keyBindRight, new Vector2f(0, 1));
-        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindForward, false);
-        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindBack, false);
-        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindLeft, false);
-        keyLastState.put(Minecraft.getInstance().gameSettings.keyBindRight, false);
+        lookupKeyToDirection.put(Minecraft.getInstance().options.keyUp, new Vector3f(1, 0, 0));
+        lookupKeyToDirection.put(Minecraft.getInstance().options.keyDown, new Vector3f(-1, 0, 0));
+        lookupKeyToDirection.put(Minecraft.getInstance().options.keyLeft, new Vector3f(0, -1, 0));
+        lookupKeyToDirection.put(Minecraft.getInstance().options.keyRight, new Vector3f(0, 1, 0));
+        keyLastState.put(Minecraft.getInstance().options.keyUp, false);
+        keyLastState.put(Minecraft.getInstance().options.keyDown, false);
+        keyLastState.put(Minecraft.getInstance().options.keyLeft, false);
+        keyLastState.put(Minecraft.getInstance().options.keyRight, false);
     }
 
     public static void tickClientRender() {
 
-        PlayerEntity player = Minecraft.getInstance().player;
-        Entity camera = Minecraft.getInstance().getRenderViewEntity();
+        Player player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getCameraEntity();
 
         if (player == null || camera == null) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.currentScreen == null && (!MovePlusCfgForge.GENERAL.dontGroundDodgeIfSneaking.get() || !player.isSneaking())) {
+        if (mc.screen == null && (!MovePlusCfgForge.GENERAL.dontGroundDodgeIfSneaking.get() || player.getPose() != Pose.CROUCHING)) {
             if (MovePlusCfgForge.GENERAL.useGroundDodge.get()) {
                 tickDodging();
             }
@@ -87,8 +89,8 @@ public class ClientTicker {
     }
 
     public static void tickClientGame() {
-        PlayerEntity player = Minecraft.getInstance().player;
-        Entity camera = Minecraft.getInstance().getRenderViewEntity();
+        Player player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getCameraEntity();
 
         if (player == null || camera == null) return;
 
@@ -98,7 +100,7 @@ public class ClientTicker {
         }
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.currentScreen == null) {
+        if (mc.screen == null) {
             if (MovePlusCfgForge.GENERAL.useLedgeClimb.get()) {
                 tickLedgeClimb();
             }
@@ -114,8 +116,8 @@ public class ClientTicker {
     }
 
     public static void tickSpectating() {
-        PlayerEntity player = Minecraft.getInstance().player;
-        Entity camera = Minecraft.getInstance().getRenderViewEntity();
+        Player player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getCameraEntity();
         Minecraft mc = Minecraft.getInstance();
         long curTime = System.currentTimeMillis();
 
@@ -127,10 +129,10 @@ public class ClientTicker {
          * - also now tracks players across dimensions
          */
         if (spectateFixes) {
-            Entity specEnt = mc.getRenderViewEntity();
-            ClientPlayerEntity clientPlayer = mc.player;
+            Entity specEnt = mc.getCameraEntity();
+            LocalPlayer clientPlayer = mc.player;
 
-            if (specEnt != null && player != null && player.world != null && player.isSpectator()) {
+            if (specEnt != null && player != null && player.level != null && player.isSpectator()) {
                 if (curTime > lastTick + syncDelay) {
 
                     //dbg("curTime: " + curTime);
@@ -145,15 +147,15 @@ public class ClientTicker {
 
                         //apply the chunk rendering out of range fix
                         dbg("syncing client player to spectator position: " + specEnt);
-                        clientPlayer.setPosition(specEnt.getPosX(), specEnt.getPosY(), specEnt.getPosZ());
+                        clientPlayer.setPos(specEnt.getX(), specEnt.getY(), specEnt.getZ());
                     }
 
                     if (keepSpectatingPlayer && !lastPlayerSpectated.equals("")) {
                         boolean ghostPlayer = false;
                         boolean diffDimensionPlayer = false;
 
-                        AbstractClientPlayerEntity foundNonSpectatingPlayerInSameDimension = null;
-                        for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
+                        AbstractClientPlayer foundNonSpectatingPlayerInSameDimension = null;
+                        for (AbstractClientPlayer otherPlayer : mc.level.players()) {
                             if (otherPlayer.getName().getString().equals(lastPlayerSpectated)) {
                                 foundNonSpectatingPlayerInSameDimension = otherPlayer;
                             }
@@ -163,8 +165,8 @@ public class ClientTicker {
                          * check and fix diff dimension spectating
                          */
 
-                        ClientPlayNetHandler clientplaynethandler = mc.player.connection;
-                        NetworkPlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
+                        ClientPacketListener clientplaynethandler = mc.player.connection;
+                        PlayerInfo netInfo = clientplaynethandler.getPlayerInfo(lastPlayerSpectated);
                         if (netInfo == null) {
                             //player disconnected
                             dbg("detected target player not on server");
@@ -181,11 +183,11 @@ public class ClientTicker {
                             isSpectatingASpectator = true;
                         }
 
-                        if (diffDimensionPlayer && !isSpectatingASpectator) {
+                        /*if (diffDimensionPlayer && !isSpectatingASpectator) {
                             clientPlayer.sendChatMessage("/tp " + clientPlayer.getName().getString() + " " + lastPlayerSpectated);
                             clientPlayer.sendChatMessage("/spectate");
                             clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                        }
+                        }*/
 
                         /**
                          * check and fix invalid spectating player
@@ -195,10 +197,10 @@ public class ClientTicker {
                             ghostPlayer = true;
                         }
 
-                        if (ghostPlayer) {
+                        /*if (ghostPlayer) {
                             clientPlayer.sendChatMessage("/spectate");
                             clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
-                        }
+                        }*/
 
                         boolean noPlayerToTrack = foundNonSpectatingPlayerInSameDimension == null && !diffDimensionPlayer;
 
@@ -216,8 +218,8 @@ public class ClientTicker {
                                 dbg("spec cycle considering: " + names[i]);
 
                                 //lets only look for players in same dimension, since we cant lookup cross dimension players without teleporting everywhere
-                                AbstractClientPlayerEntity foundNonSpectatingPlayerInSameDimension2 = null;
-                                for (AbstractClientPlayerEntity otherPlayer : mc.world.getPlayers()) {
+                                AbstractClientPlayer foundNonSpectatingPlayerInSameDimension2 = null;
+                                for (AbstractClientPlayer otherPlayer : mc.level.players()) {
                                     if (abort) break;
                                     if (otherPlayer.getName().getString().equals(names[i])) {
                                         foundNonSpectatingPlayerInSameDimension2 = otherPlayer;
@@ -225,8 +227,8 @@ public class ClientTicker {
                                         if (!lastPlayerSpectated.equals(foundNonSpectatingPlayerInSameDimension2.getName().getString())) {
                                             lastPlayerSpectated = foundNonSpectatingPlayerInSameDimension2.getName().getString();
                                             dbg("spec cycle found: " + names[i] + " in dim to spectate, setting " + lastPlayerSpectated);
-                                            clientPlayer.sendChatMessage("/spectate");
-                                            clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);
+                                            /*clientPlayer.sendChatMessage("/spectate");
+                                            clientPlayer.sendChatMessage("/spectate " + lastPlayerSpectated);*/
                                             abort = true;
                                         } else {
                                             //found self, its a match just dont do anything and abort
@@ -243,7 +245,7 @@ public class ClientTicker {
                     }
                 }
 
-                if (clientPlayer.isSneaking()) {
+                if (clientPlayer.getPose() == Pose.CROUCHING) {
                     keepSpectatingPlayer = false;
                     lastPlayerSpectated = "";
                     dbg("setting keepSpectatingPlayer = false");
@@ -277,23 +279,23 @@ public class ClientTicker {
     }
 
     public static void tickDodging() {
-        PlayerEntity player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
 
         lookupKeyToDirection.forEach((k, v) -> processDodgeKey(k, v));
     }
 
-    public static void processDodgeKey(KeyBinding key, Vector2f vec) {
+    public static void processDodgeKey(KeyMapping key, Vector3f vec) {
         long curTime = System.currentTimeMillis();
         long lastTime = getLastKeyTime(key);
 
-        PlayerEntity player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
 
         //key.matchesKey()
 
         //not mouse check
         //if (key.getKeyCode() > 0) {
             //if (Keyboard.isKeyDown(key.getKeyCode()) && !keyLastState.get(key)) {
-            if (key.isKeyDown() && !keyLastState.get(key)) {
+            if (key.isDown() && !keyLastState.get(key)) {
                 //CULog.dbg(key.getDisplayName() + ": " + (Keyboard.isKeyDown(key.getKeyCode()) ? "pressed" : "not pressed"));
                 if (lastTime == -1L) {
                     setLastKeyTime(key, curTime);
@@ -302,7 +304,7 @@ public class ClientTicker {
                         //CULog.dbg("dodge! " + key.getDisplayName());
                         double forceVertical = MovePlusCfgForge.GENERAL.groundDodgeForceVertical.get();
                         double forceHorizontal = MovePlusCfgForge.GENERAL.groundDodgeForceHorizontal.get();
-                        setRelVel(player, vec.y, (float)forceVertical, vec.x, (float)forceHorizontal);
+                        setRelVel(player, vec.y(), (float)forceVertical, vec.x(), (float)forceHorizontal);
                         setLastKeyTime(key, -1L);
 
 
@@ -318,31 +320,33 @@ public class ClientTicker {
             //prevent double tapping trigger between tapping other keys
             //check last state was unpressed so we dont cancel out actively held down keys
             //if (!Keyboard.isKeyDown(key.getKeyCode()) && keyLastState.get(key)) {
-            if (!key.isKeyDown() && keyLastState.get(key)) {
-                for (Map.Entry<KeyBinding, Long> entry : keyTimesLastPressed.entrySet()) {
+            if (!key.isDown() && keyLastState.get(key)) {
+                for (Map.Entry<KeyMapping, Long> entry : keyTimesLastPressed.entrySet()) {
                     if (entry.getKey() != key) {
                         entry.setValue(-1L);
                     }
                 }
             }
 
-            keyLastState.put(key, key.isKeyDown());
+            keyLastState.put(key, key.isDown());
             //keyLastState.put(key, Keyboard.isKeyDown(key.getKeyCode()));
 
         //}
     }
 
     public static void tickLedgeClimb() {
-        PlayerEntity player = Minecraft.getInstance().player;
-        Entity camera = Minecraft.getInstance().getRenderViewEntity();
+        Player player = Minecraft.getInstance().player;
+        Entity camera = Minecraft.getInstance().getCameraEntity();
 
         boolean renderDebug = true;
 
-        if (Minecraft.getInstance().gameSettings.keyBindSprint.isKeyDown()/*Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)*/) {
+        if (Minecraft.getInstance().options.keySprint.isDown()) {
 
             float grabDist = 0.75F;
-            Vector3d lookVec = player.getLookVec().scale(grabDist);
-            Vector3d lookVecBehind = player.getLookVec().scale(-0.25F);
+            Vec3 vec1 = player.getLookAngle().scale(grabDist);
+            Vec3 vec2 = player.getLookAngle().scale(-0.25F);
+            Vector3d lookVec = new Vector3d(vec1.x, vec1.y, vec1.z);
+            Vector3d lookVecBehind = new Vector3d(vec2.x, vec2.y, vec2.z);
 
             //from where they are grabbing along x and z
             //now we will scan from up to down, seeing if theres a spot there hands or feet could be
@@ -353,46 +357,46 @@ public class ClientTicker {
             //expand y bb 0.25
 
             //double yScanRangeAir = player.height + 0.2D;
-            double yScanRangeAir = player.getHeight() + 0.2D;
+            double yScanRangeAir = player.getEyeHeight() + 0.2D;
             double yScanRangeSolid = 0.4D;
             double yScanRes = 0.2D;
             double yAirSize = 0.25D;
             double xzSize = 0.3D;
             double xzSizeBehind = 0.1D;
 
-            AxisAlignedBB playerAABB = player.getBoundingBox();
-            AxisAlignedBB spotForHandsAir = new AxisAlignedBB(player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z,
-                    player.getPosX() + lookVec.x, playerAABB.minY, player.getPosZ() + lookVec.z)
-                    .grow(xzSize, yAirSize, xzSize);
+            AABB playerAABB = player.getBoundingBox();
+            AABB spotForHandsAir = new AABB(player.getX() + lookVec.x, playerAABB.minY, player.getZ() + lookVec.z,
+                    player.getX() + lookVec.x, playerAABB.minY, player.getZ() + lookVec.z)
+                    .expandTowards(xzSize, yAirSize, xzSize);
 
-            AxisAlignedBB behindUnderFeet = new AxisAlignedBB(player.getPosX() + lookVecBehind.x, playerAABB.minY, player.getPosZ() + lookVecBehind.z,
-                    player.getPosX() + lookVecBehind.x, playerAABB.minY, player.getPosZ() + lookVecBehind.z)
-                    .grow(xzSizeBehind, xzSizeBehind, xzSizeBehind);
+            AABB behindUnderFeet = new AABB(player.getX() + lookVecBehind.x, playerAABB.minY, player.getZ() + lookVecBehind.z,
+                    player.getX() + lookVecBehind.x, playerAABB.minY, player.getZ() + lookVecBehind.z)
+                    .inflate(xzSizeBehind, xzSizeBehind, xzSizeBehind);
 
-            if (renderDebug) renderOffsetAABB(behindUnderFeet.offset(-player.getPosX(), -playerAABB.minY, -player.getPosZ()), 0, 0, 0, 0, 1, 0);
+            if (renderDebug) renderOffsetAABB(behindUnderFeet.move(-player.getX(), -playerAABB.minY, -player.getZ()), 0, 0, 0, 0, 1, 0);
 
             //initial air finding loop
             boolean foundGrabbableSpot = false;
             //fix it trying to climb while either on the ground or just getting over ledge
             //if (!player.onGround && player.world.getCollisionBoxes(player, behindUnderFeet).size() == 0) {
-            if (!player.isOnGround() && player.world.hasNoCollisions(player, behindUnderFeet)) {
+            if (!player.isOnGround() && player.level.noCollision(player, behindUnderFeet)) {
                 for (double y = yScanRangeAir; y > 0.25D && !foundGrabbableSpot; y -= yScanRes) {
                     //if found a good air spot, find a solid spot under it within a tiny range of it
                     //if (player.world.getCollisionBoxes(player, spotForHandsAir.offset(0, y, 0)).size() == 0) {
-                    if (player.world.hasNoCollisions(player, spotForHandsAir.offset(0, y, 0))) {
+                    if (player.level.noCollision(player, spotForHandsAir.move(0, y, 0))) {
                         //TEMP
                         //foundGrabbableSpot = true;
-                        AxisAlignedBB aabbRenderAir = spotForHandsAir.offset(-player.getPosX(), -playerAABB.minY + y, -player.getPosZ());
-                        if (renderDebug) renderOffsetAABB(aabbRenderAir.grow(xzSize, 0, xzSize), 0, 0, 0, 0, 0, 1);
+                        AABB aabbRenderAir = spotForHandsAir.move(-player.getX(), -playerAABB.minY + y, -player.getZ());
+                        if (renderDebug) renderOffsetAABB(aabbRenderAir.inflate(xzSize, 0, xzSize), 0, 0, 0, 0, 0, 1);
                         for (double y2 = 0; y2 < yScanRangeSolid; y2 += yScanRes) {
                             //start the spot half intersecting the air spot and iterate down a bit
-                            AxisAlignedBB aabbTry2 = spotForHandsAir.offset(0, y - (yAirSize * 1D) - y2, 0);
-                            AxisAlignedBB aabbRenderSolid = aabbTry2.offset(-player.getPosX(), -playerAABB.minY, -player.getPosZ());
-                            AxisAlignedBB aabb2 = new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(1, 1, 1);
+                            AABB aabbTry2 = spotForHandsAir.move(0, y - (yAirSize * 1D) - y2, 0);
+                            AABB aabbRenderSolid = aabbTry2.move(-player.getX(), -playerAABB.minY, -player.getZ());
+                            AABB aabb2 = new AABB(0, 0, 0, 0, 0, 0).inflate(1, 1, 1);
                             //if (player.world.getCollisionBoxes(player, aabbTry2).size() > 0 && aabbTry2.minY + 0.15D > playerAABB.minY) {
-                            if (!player.world.hasNoCollisions(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
+                            if (!player.level.noCollision(player, aabbTry2) && aabbTry2.minY + 0.15D > playerAABB.minY) {
                                 foundGrabbableSpot = true;
-                                if (renderDebug) renderOffsetAABB(aabbRenderSolid.grow(xzSize, 0, xzSize), 0, 0, 0, 1, 0, 0);
+                                if (renderDebug) renderOffsetAABB(aabbRenderSolid.inflate(xzSize, 0, xzSize), 0, 0, 0, 1, 0, 0);
                                 //Render.renderOffsetAABB(aabbRender, -camera.getPosX(), -camera.getPosY(), -camera.getPosZ());
                                 //Render.renderOffsetAABB(aabb2, 0, 0, 0);
                                 break;
@@ -404,9 +408,9 @@ public class ClientTicker {
 
             if (foundGrabbableSpot/*nearWall(player)*/) {
                 float climbSpeed = 0.08F;
-                if (player.getMotion().y < climbSpeed) {
-                    Vector3d speed = player.getMotion();
-                    player.setMotion(speed.x, climbSpeed, speed.z);
+                if (player.getDeltaMovement().y < climbSpeed) {
+                    Vec3 speed = player.getDeltaMovement();
+                    player.setDeltaMovement(speed.x, climbSpeed, speed.z);
                 }
             }
         }
@@ -414,44 +418,44 @@ public class ClientTicker {
 
     public static void tickKnockbackResistence() {
 
-        PlayerEntity player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
 
-        float speed = (float) player.getMotion().lengthSquared();
+        float speed = (float) player.getDeltaMovement().lengthSqr();
 
         if (player.hurtTime > 0) {
 
             player.hurtTime = 0;
 
             if (MovePlusCfgForge.GENERAL.knockbackResistAmount.get() == 1D) {
-                player.setMotion(prevMotion);
+                player.setDeltaMovement(prevMotion);
                 /*player.motionX = prevMotionX;
                 player.motionY = prevMotionY;
                 player.motionZ = prevMotionZ;*/
             } else {
-                player.setMotion
-                        (prevMotion.x + player.getMotion().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D))
-                        , prevMotion.y + player.getMotion().y > 0.1D ? 0D : (player.getMotion().y * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)))
-                        , prevMotion.z + player.getMotion().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)));
+                player.setDeltaMovement
+                        (prevMotion.x + player.getDeltaMovement().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D))
+                        , prevMotion.y + player.getDeltaMovement().y > 0.1D ? 0D : (player.getDeltaMovement().y * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)))
+                        , prevMotion.z + player.getDeltaMovement().x * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount.get(), 1D)));
                 /*player.motionX = prevMotionX + (player.motionX * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D)));
                 player.motionY = prevMotionY + (prevMotionY > 0.1D ? 0D : (player.motionY * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D))));
                 player.motionZ = prevMotionZ + (player.motionZ * (1D - Math.min(MovePlusCfgForge.GENERAL.knockbackResistAmount, 1D)));*/
             }
         } else {
-            prevMotion = player.getMotion().scale(1D);
+            prevMotion = player.getDeltaMovement().scale(1D);
             /*prevMotionX = player.motionX;
             prevMotionY = player.motionY;
             prevMotionZ = player.motionZ;*/
         }
     }
 
-    public static long getLastKeyTime(KeyBinding keybind) {
+    public static long getLastKeyTime(KeyMapping keybind) {
         if (!keyTimesLastPressed.containsKey(keybind)) {
             keyTimesLastPressed.put(keybind, -1L);
         }
         return keyTimesLastPressed.get(keybind);
     }
 
-    public static void setLastKeyTime(KeyBinding keybind, long time) {
+    public static void setLastKeyTime(KeyMapping keybind, long time) {
         keyTimesLastPressed.put(keybind, time);
     }
 
@@ -470,7 +474,7 @@ public class ClientTicker {
     public static void setRelVel(Entity entity, float rightSpeed, float y, float forwardSpeed, float horizontalMultiplier) {
         float var5 = 10.0F;
         float var6 = 0.0F;
-        float var7 = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * var5;
+        float var7 = entity.yRotO + (entity.getYRot() - entity.yRotO) * var5;
         int var8 = (int)Math.floor((double)(var7 / 360.0F) + 0.5D);
         var7 = var7 - (float)var8 * 360.0F + 270.0F;
 
@@ -484,29 +488,29 @@ public class ClientTicker {
             var7 += 270.0F + forwardSpeed * 10.0F;
         }
 
-        float var9 = MathHelper.cos(-var7 * 0.01745329F - 3.141593F);
-        float var10 = MathHelper.sin(-var7 * 0.01745329F - 3.141593F);
-        float var11 = -MathHelper.cos(-var6 * 0.01745329F - 0.7853982F);
-        //float var12 = MathHelper.sin(-var6 * 0.01745329F - 0.7853982F);
+        float var9 = Mth.cos(-var7 * 0.01745329F - 3.141593F);
+        float var10 = Mth.sin(-var7 * 0.01745329F - 3.141593F);
+        float var11 = -Mth.cos(-var6 * 0.01745329F - 0.7853982F);
+        //float var12 = Mth.sin(-var6 * 0.01745329F - 0.7853982F);
         float var13 = var9 * var11;
         float var15 = var10 * var11;
 
         if(rightSpeed == 0.0F && forwardSpeed == 0.0F) {
-            AddHorizAndSetVerticalVel(entity, (float)entity.getMotion().x / 2.0F, y, (float)entity.getMotion().z / 2.0F);
+            AddHorizAndSetVerticalVel(entity, (float)entity.getDeltaMovement().x / 2.0F, y, (float)entity.getDeltaMovement().z / 2.0F);
         } else {
             AddHorizAndSetVerticalVel(entity, var13 * horizontalMultiplier * -1.0F, y, var15 * horizontalMultiplier);
         }
     }
 
     public static void AddHorizAndSetVerticalVel(Entity entity, float x, float y, float z) {
-        entity.setMotion(new Vector3d(entity.getMotion().x + x, y, entity.getMotion().z + z));
+        entity.setDeltaMovement(entity.getDeltaMovement().x + x, y, entity.getDeltaMovement().z + z);
         /*entity.motionX += (double)x;
         entity.motionY = (double)y;
         entity.motionZ += (double)z;*/
     }
 
     //TODO: wont work until setTranslation fix
-    public static void renderOffsetAABB(AxisAlignedBB bounds, double x, double y, double z, float r, float g, float b)
+    public static void renderOffsetAABB(AABB bounds, double x, double y, double z, float r, float g, float b)
     {
 
         //TODO: 1.15
@@ -555,17 +559,17 @@ public class ClientTicker {
 
     public static void tickCrawl() {
         try {
-            PlayerEntity player = Minecraft.getInstance().player;
+            Player player = Minecraft.getInstance().player;
 
             if (player != null) {
-                KeyBinding keySneak = Minecraft.getInstance().gameSettings.keyBindSneak;
-                KeyBinding keySprint = Minecraft.getInstance().gameSettings.keyBindSprint;
+                KeyMapping keySneak = Minecraft.getInstance().options.keyShift;
+                KeyMapping keySprint = Minecraft.getInstance().options.keySprint;
 
                 //tap sprint while sneaking to lock crawling on, requires actively holding down sneak
                 //letting go of sneak stops crawl
 
-                if (keySneak.isKeyDown()) {
-                    if (keySprint.isKeyDown()) {
+                if (keySneak.isDown()) {
+                    if (keySprint.isDown()) {
                         if (!isCurrentlyCrawling()) {
                             //System.out.println("set crawling true");
                             setCrawling(true);
@@ -598,9 +602,9 @@ public class ClientTicker {
         //System.out.println("sendCrawlPacketToServer: " + isCrawling);
     }
 
-    public static boolean isMainClientPlayer(PlayerEntity player) {
+    public static boolean isMainClientPlayer(Player player) {
         if (Minecraft.getInstance().player == null) return false;
-        return player.getUniqueID() == Minecraft.getInstance().player.getUniqueID();
+        return player.getUUID() == Minecraft.getInstance().player.getUUID();
     }
 
 }

@@ -28,10 +28,10 @@ public class MovePlusCfgForge {
             CLIENT_BUILDER.comment("General mod settings").push("general");
 
             useGroundDodge = CLIENT_BUILDER
-                    .define("useGroundDodge", false);
+                    .define("useGroundDodge", true);
 
             useLedgeClimb = CLIENT_BUILDER
-                    .define("useLedgeClimb", false);
+                    .define("useLedgeClimb", true);
 
             useCrawlAnywhere = CLIENT_BUILDER
                     .define("useCrawlAnywhere", true);
@@ -56,13 +56,4 @@ public class MovePlusCfgForge {
     }
 
     public static final ForgeConfigSpec CLIENT_CONFIG = CLIENT_BUILDER.build();
-
-    //TODO: off for 1.15
-    /*public static void onLoad(final ModConfig.Loading configEvent) {
-        MovePlus.LOGGER.info("ModConfig.Loading!" + configEvent.toString());
-    }
-
-    public static void onFileChange(final ModConfig.ConfigReloading configEvent) {
-        MovePlus.LOGGER.info("file changed!" + configEvent.toString());
-    }*/
 }

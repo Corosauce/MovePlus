@@ -1,9 +1,12 @@
 package com.corosus.ltmoveplus.forge;
 
+import com.corosus.ltmoveplus.config.MovePlusCfgForge;
 import com.corosus.ltmoveplus.network.MovePlusNetwork;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -17,7 +20,7 @@ public class MovePlus
 {
     public static final Logger LOGGER = LogManager.getLogger();
 
-    public static final String MODID = "ltmoveplus";
+    public static final String MODID = "moveplus";
 
     public MovePlus() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -31,7 +34,7 @@ public class MovePlus
 
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MovePlusCfgForge.CLIENT_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MovePlusCfgForge.CLIENT_CONFIG);
 
         //TODO: off for 1.15
         /*eventBus.addListener(MovePlusCfgForge::onLoad);

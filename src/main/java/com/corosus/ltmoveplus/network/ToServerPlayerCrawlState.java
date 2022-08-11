@@ -1,8 +1,8 @@
 package com.corosus.ltmoveplus.network;
 
 import com.corosus.ltmoveplus.forge.EventHandlerForge;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -13,11 +13,11 @@ public class ToServerPlayerCrawlState {
 		this.isCrawling = isCrawling;
 	}
 
-	public void encode(PacketBuffer buffer) {
+	public void encode(FriendlyByteBuf buffer) {
 		buffer.writeBoolean(isCrawling);
 	}
 
-	public static ToServerPlayerCrawlState decode(PacketBuffer buffer) {
+	public static ToServerPlayerCrawlState decode(FriendlyByteBuf buffer) {
 		return new ToServerPlayerCrawlState(buffer.readBoolean());
 	}
 

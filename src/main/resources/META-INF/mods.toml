@@ -1,11 +1,11 @@
 modLoader="javafml"
-loaderVersion="[34,)"
+loaderVersion="[40,)"
 license = "All Rights Reserved"
 [[mods]]
-modId="ltmoveplus"
+modId="moveplus"
 version="${file.jarVersion}"
-displayName="Move Plus - Love Tropics Crawl Anywhere"
+displayName="Move Plus"
 authors="Corosus"
 description='''
-Steve go brrr in the tropics
+Steve go brrr
 '''
