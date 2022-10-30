@@ -28,10 +28,10 @@ public class MovePlusCfgForge {
             CLIENT_BUILDER.comment("General mod settings").push("general");
 
             useGroundDodge = CLIENT_BUILDER
-                    .define("useGroundDodge", true);
+                    .define("useGroundDodge", false);
 
             useLedgeClimb = CLIENT_BUILDER
-                    .define("useLedgeClimb", true);
+                    .define("useLedgeClimb", false);
 
             useCrawlAnywhere = CLIENT_BUILDER
                     .define("useCrawlAnywhere", true);

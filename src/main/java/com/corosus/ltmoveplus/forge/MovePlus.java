@@ -34,7 +34,7 @@ public class MovePlus
 
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MovePlusCfgForge.CLIENT_CONFIG);
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MovePlusCfgForge.CLIENT_CONFIG);
 
         //TODO: off for 1.15
         /*eventBus.addListener(MovePlusCfgForge::onLoad);
